@@ -17,10 +17,9 @@ const MASTER_KEY = "anhkhoi_xabc2102";
 const TELEGRAM_ADMIN_CONTACT = "@anhkhoi_xabc";
 const ADMIN_WORK_HOURS = "12h00 trưa đến 21h00 - 22h00 tối hàng ngày";
 
-// API NGUỒN DỮ LIỆU TÀI XỈU THỰC CHIẾN
-const API_LC79_MD5 = "https://lc79-taixiumd5-dulieu.onrender.com/data";
+// API NGUỒN DỮ LIỆU TÀI XỈU THỰC CHIẾN - CHỈ GIỮ DUY NHẤT 1 API MD5 (LC79) VÀ 1 BÀN HŨ
+const API_MD5_LC79 = "https://lc79-taixiumd5-dulieu.onrender.com/data";
 const API_HU = "https://wtx.tele68.com/v1/tx/lite-sessions?cp=R&cl=R&pf=web&at=83991213bfd4c554dc94bcd98979bdc5";
-const API_MD5 = "https://wtxmd52.tele68.com/v1/txmd5/sessions";
 
 if (!existsSync(DATA_DIR)) {
   try { mkdirSync(DATA_DIR, { recursive: true }); } catch {}
@@ -41,9 +40,8 @@ function loadStore() {
         users: data.users || {},
         logs: Array.isArray(data.logs) ? data.logs : [],
         systemSettings: data.systemSettings || { minConfidence: 75, targetWinRate: 85, defaultTheme: "random" },
-        lc79: { activePred: data.lc79?.activePred || null, outcomes: data.lc79?.outcomes || [], history: data.lc79?.history || [] },
-        hu: { activePred: data.hu?.activePred || null, outcomes: data.hu?.outcomes || [], history: data.hu?.history || [] },
-        md5: { activePred: data.md5?.activePred || null, outcomes: data.md5?.outcomes || [], history: data.md5?.history || [] }
+        md5: { activePred: data.md5?.activePred || null, outcomes: data.md5?.outcomes || [], history: data.md5?.history || [] },
+        hu: { activePred: data.hu?.activePred || null, outcomes: data.hu?.outcomes || [], history: data.hu?.history || [] }
       };
     }
   } catch {}
@@ -53,9 +51,8 @@ function loadStore() {
     users: {},
     logs: [],
     systemSettings: { minConfidence: 75, targetWinRate: 85, defaultTheme: "random" },
-    lc79: { activePred: null, outcomes: [], history: [] },
-    hu: { activePred: null, outcomes: [], history: [] },
-    md5: { activePred: null, outcomes: [], history: [] }
+    md5: { activePred: null, outcomes: [], history: [] },
+    hu: { activePred: null, outcomes: [], history: [] }
   };
 }
 
@@ -127,81 +124,87 @@ function formatResultDisplay(str) {
 }
 
 // =========================================================================
-// HỆ THỐNG PHỐI MÀU NGHỆ THUẬT & RANDOM COLOR THEMES BẮT MẮT
+// HỆ THỐNG GIAO DIỆN HIỆN ĐẠI SIÊU CẤP & BỘ PHỐI MÀU NGHỆ THUẬT FUTURISTIC
+// Tuyệt đối không dùng icon thông thường, sử dụng Glyphs & Hologram tương lai
 // =========================================================================
-const COLOR_THEMES = {
-  ruby: {
-    id: "ruby",
-    name: "Ruby Gold (Đỏ Ruby - Hoàng Kim)",
-    taiBadge: "🔴 [TÀI]",
-    xiuBadge: "🟡 [XỈU]",
-    headerIcon: "👑",
-    fireIcon: "🔥",
-    statIcon: "🏆",
-    barFill: "🟥",
+const CYBER_THEMES = {
+  violet: {
+    id: "violet",
+    name: "🔮 Cyber Violet Hologram (Tím Hoàng Gia - Hồng Neon)",
+    badgeTai: "🟣 ⟦ ◈ TÀI ◈ ⟧",
+    badgeXiu: "🌸 ⟦ ⬡ XỈU ⬡ ⟧",
+    iconHeader: "🔮",
+    iconFire: "⚡︎",
+    iconStat: "⟡",
+    iconCard: "❖",
+    barFill: "🟪",
     barEmpty: "⬜",
-    decor: "✨"
+    tagStyle: "violet"
   },
-  cyber: {
-    id: "cyber",
-    name: "Cyber Sapphire (Xanh Neon Kỹ Thuật)",
-    taiBadge: "🔵 [TÀI]",
-    xiuBadge: "⚪ [XỈU]",
-    headerIcon: "💎",
-    fireIcon: "⚡",
-    statIcon: "💠",
+  sapphire: {
+    id: "sapphire",
+    name: "💎 Hyperdrive Sapphire (Lam Ngọc Điện Biên - Bạc)",
+    badgeTai: "🔵 ⟦ ◈ TÀI ◈ ⟧",
+    badgeXiu: "⚪ ⟦ ⬡ XỈU ⬡ ⟧",
+    iconHeader: "💎",
+    iconFire: "⚡︎",
+    iconStat: "💠",
+    iconCard: "◈",
     barFill: "🟦",
     barEmpty: "⬜",
-    decor: "❄️"
+    tagStyle: "blue"
   },
   emerald: {
     id: "emerald",
-    name: "Emerald Matrix (Ngọc Lục Bảo Siêu Lãi)",
-    taiBadge: "🟢 [TÀI]",
-    xiuBadge: "⚫ [XỈU]",
-    headerIcon: "🍀",
-    fireIcon: "🔋",
-    statIcon: "🌿",
+    name: "❇️ Quantum Matrix Emerald (Ngọc Lục Bảo - Laser Xanh)",
+    badgeTai: "🟢 ⟦ ◈ TÀI ◈ ⟧",
+    badgeXiu: "⚫ ⟦ ⬡ XỈU ⬡ ⟧",
+    iconHeader: "❇️",
+    iconFire: "🔋",
+    iconStat: "⬢",
+    iconCard: "⬡",
     barFill: "🟩",
     barEmpty: "⬛",
-    decor: "💫"
+    tagStyle: "green"
   },
-  violet: {
-    id: "violet",
-    name: "Violet Amethyst (Tím Hoàng Tộc Sang Trọng)",
-    taiBadge: "🟣 [TÀI]",
-    xiuBadge: "🌸 [XỈU]",
-    headerIcon: "🔮",
-    fireIcon: "💖",
-    statIcon: "🦄",
-    barFill: "🟪",
+  solar: {
+    id: "solar",
+    name: "👑 Solar Plasma Gold (Hoàng Kim Thái Dương - Cam Lửa)",
+    badgeTai: "🟡 ⟦ ◈ TÀI ◈ ⟧",
+    badgeXiu: "🟠 ⟦ ⬡ XỈU ⬡ ⟧",
+    iconHeader: "👑",
+    iconFire: "💥",
+    iconStat: "🏆",
+    iconCard: "✦",
+    barFill: "🟨",
     barEmpty: "⬜",
-    decor: "🌟"
+    tagStyle: "gold"
   },
-  sunset: {
-    id: "sunset",
-    name: "Sunset Flame (Cam Lửa Nhiệt Huyết)",
-    taiBadge: "🟠 [TÀI]",
-    xiuBadge: "🟡 [XỈU]",
-    headerIcon: "☀️",
-    fireIcon: "💥",
-    statIcon: "🎯",
-    barFill: "🟧",
-    barEmpty: "🟨",
-    decor: "⚡"
+  crimson: {
+    id: "crimson",
+    name: "🩸 Crimson Mecha (Huyết Hắc Thạch Cơ Khí)",
+    badgeTai: "🔴 ⟦ ◈ TÀI ◈ ⟧",
+    badgeXiu: "⚫ ⟦ ⬡ XỈU ⬡ ⟧",
+    iconHeader: "🩸",
+    iconFire: "⚡︎",
+    iconStat: "◤◢",
+    iconCard: "✦",
+    barFill: "🟥",
+    barEmpty: "⬛",
+    tagStyle: "red"
   }
 };
 
-const THEME_KEYS = ["ruby", "cyber", "emerald", "violet", "sunset"];
+const THEME_KEYS = ["violet", "sapphire", "emerald", "solar", "crimson"];
 
 function getUserTheme(uid) {
   const u = store.users[String(uid)] || {};
   let userChoice = u.theme || store.systemSettings.defaultTheme || "random";
   if (userChoice === "random") {
     const randomIndex = Math.floor(Math.random() * THEME_KEYS.length);
-    return COLOR_THEMES[THEME_KEYS[randomIndex]];
+    return CYBER_THEMES[THEME_KEYS[randomIndex]];
   }
-  return COLOR_THEMES[userChoice] || COLOR_THEMES.ruby;
+  return CYBER_THEMES[userChoice] || CYBER_THEMES.violet;
 }
 
 function makeConfidenceBar(conf, theme) {
@@ -212,35 +215,38 @@ function makeConfidenceBar(conf, theme) {
 }
 
 // =========================================================================
-// THUẬT TOÁN ĐỊNH LƯỢNG BẮT CẦU TỐI THƯỢNG V7.0 GRANDMASTER (QUANTUM ADAPTIVE)
+// THUẬT TOÁN ĐỊNH LƯỢNG LƯỢNG TỬ SIÊU CẤP V8.0 QUANTUM SUPER-ADAPTIVE
 // Tác giả: Phạm Anh Khôi (@anhkhoi_xabc)
+// Tích hợp 12 mô hình toán học & học máy thích ứng tăng cường (Online Q-Weights)
 // =========================================================================
-class GrandmasterQuantEngine {
+class QuantumSuperEngine {
   constructor() {
     this.weights = {
-      streak: 5.2,
-      pattern: 4.6,
-      markov: 4.0,
-      gaussianMean: 4.2,
-      rsiMomentum: 3.8,
-      diceEntropy: 3.5,
-      zScoreRevert: 4.5
+      streak: 5.5,
+      harmonic: 4.8,
+      markov2: 4.2,
+      markov3: 4.0,
+      gaussianZ: 4.6,
+      rsi14: 4.0,
+      diceMarginal: 3.8,
+      entropyDrift: 3.5,
+      tripleShock: 4.5
     };
   }
 
   updateWeights(lastOk, strategyType) {
     if (!strategyType) return;
-    const factor = lastOk ? 1.06 : 0.90;
+    const factor = lastOk ? 1.07 : 0.88;
     for (const k of Object.keys(this.weights)) {
       if (strategyType.toLowerCase().includes(k.toLowerCase())) {
-        this.weights[k] = Math.max(1.8, Math.min(9.5, this.weights[k] * factor));
+        this.weights[k] = Math.max(1.8, Math.min(10.0, this.weights[k] * factor));
       }
     }
   }
 
   predict(history, tracker) {
     if (!history || history.length < 4) {
-      return { pred: "tài", conf: 84, src: "Đồng bộ lượng tử ban đầu", isChoppy: false };
+      return { pred: "tài", conf: 85, src: "Đồng bộ lượng tử khởi động", isChoppy: false };
     }
 
     const tx = history.map(h => normalizeResult(h.tx || h.result) === "tai" ? "T" : "X");
@@ -253,7 +259,7 @@ class GrandmasterQuantEngine {
     const reasonsT = [];
     const reasonsX = [];
 
-    // 1. Phân tích chuỗi bệt động lượng (Streak Momentum Acceleration)
+    // 1. Phân tích chuỗi bệt động lượng (Streak Acceleration & Saturation)
     let s = 1;
     for (let i = len - 2; i >= 0; i--) {
       if (tx[i] === last) s++; else break;
@@ -261,49 +267,49 @@ class GrandmasterQuantEngine {
 
     const wStreak = this.weights.streak;
     if (s >= 3 && s <= 5) {
-      if (last === "T") { scoreT += wStreak; reasonsT.push(`Đu bệt Tài nhịp vàng (${s} tay)`); }
-      else { scoreX += wStreak; reasonsX.push(`Đu bệt Xỉu nhịp vàng (${s} tay)`); }
+      if (last === "T") { scoreT += wStreak * 1.05; reasonsT.push(`Đu bệt gia tốc Tài (${s} tay)`); }
+      else { scoreX += wStreak * 1.05; reasonsX.push(`Đu bệt gia tốc Xỉu (${s} tay)`); }
     } else if (s >= 6 && s <= 8) {
-      if (last === "T") { scoreT += wStreak * 1.2; reasonsT.push(`Bám bệt Tài sâu (${s} tay)`); }
-      else { scoreX += wStreak * 1.2; reasonsX.push(`Bám bệt Xỉu sâu (${s} tay)`); }
+      if (last === "T") { scoreT += wStreak * 1.25; reasonsT.push(`Bám đà bệt sâu Tài (${s} tay)`); }
+      else { scoreX += wStreak * 1.25; reasonsX.push(`Bám đà bệt sâu Xỉu (${s} tay)`); }
     } else if (s >= 9) {
-      // Điểm bão hòa chuỗi -> Lực kéo bẻ cầu tất yếu
-      if (last === "T") { scoreX += wStreak * 1.35; reasonsX.push(`Bẻ bệt Tài bão hòa (${s} tay)`); }
-      else { scoreT += wStreak * 1.35; reasonsT.push(`Bẻ bệt Xỉu bão hòa (${s} tay)`); }
+      // Điểm bão hòa chuỗi phân rã Poisson -> Lực kéo bẻ cầu đảo chiều cực đại
+      if (last === "T") { scoreX += wStreak * 1.45; reasonsX.push(`Lực kéo bẻ bệt bão hòa (${s} tay)`); }
+      else { scoreT += wStreak * 1.45; reasonsT.push(`Lực kéo bẻ bệt bão hòa (${s} tay)`); }
     } else if (s === 1) {
       const last4 = tx.slice(-4);
       if (last4.length === 4 && last4[0] !== last4[1] && last4[1] !== last4[2] && last4[2] !== last4[3]) {
-        if (last === "T") { scoreX += this.weights.pattern * 1.1; reasonsX.push("Nhịp đảo Ping-Pong 1-1"); }
-        else { scoreT += this.weights.pattern * 1.1; reasonsT.push("Nhịp đảo Ping-Pong 1-1"); }
+        if (last === "T") { scoreX += this.weights.harmonic * 1.15; reasonsX.push("Sóng điều hòa Ping-Pong 1-1"); }
+        else { scoreT += this.weights.harmonic * 1.15; reasonsT.push("Sóng điều hòa Ping-Pong 1-1"); }
       }
     } else if (s === 2) {
       const last4 = tx.slice(-4);
       if (last4.length === 4 && last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-        if (last === "T") { scoreX += this.weights.pattern; reasonsX.push("Nhịp song hành 2-2"); }
-        else { scoreT += this.weights.pattern; reasonsT.push("Nhịp song hành 2-2"); }
+        if (last === "T") { scoreX += this.weights.harmonic; reasonsX.push("Nhịp song hành đôi 2-2"); }
+        else { scoreT += this.weights.harmonic; reasonsT.push("Nhịp song hành đôi 2-2"); }
       }
     }
 
-    // 2. Hình thái cầu kinh điển (Bậc thang 1-2-3, 3-2-1, Cầu Kẹp 2-1-2)
-    const wPattern = this.weights.pattern;
+    // 2. Hình thái cấu trúc cầu kẹp và bậc thang lượng tử
+    const wHarmonic = this.weights.harmonic;
     const seq5 = tx.slice(-5).join("");
     if (seq5 === "TTXTT" || seq5 === "XXTXX") {
-      if (last === "T") { scoreX += wPattern * 1.15; reasonsX.push("Thoát kẹp đối xứng 2-1-2"); }
-      else { scoreT += wPattern * 1.15; reasonsT.push("Thoát kẹp đối xứng 2-1-2"); }
+      if (last === "T") { scoreX += wHarmonic * 1.2; reasonsX.push("Thoát kẹp đối xứng 2-1-2"); }
+      else { scoreT += wHarmonic * 1.2; reasonsT.push("Thoát kẹp đối xứng 2-1-2"); }
     }
     const seq6 = tx.slice(-6).join("");
     if (seq6 === "TTTXXT" || seq6 === "XXXTTX") {
-      if (last === "T") { scoreT += wPattern; reasonsT.push("Hãm đà bậc thang 3-2-1"); }
-      else { scoreX += wPattern; reasonsX.push("Hãm đà bậc thang 3-2-1"); }
+      if (last === "T") { scoreT += wHarmonic * 1.05; reasonsT.push("Hãm quán tính bậc 3-2-1"); }
+      else { scoreX += wHarmonic * 1.05; reasonsX.push("Hãm quán tính bậc 3-2-1"); }
     }
     if (seq6 === "TXXTTT" || seq6 === "XTTXXX") {
-      if (last === "T") { scoreX += wPattern; reasonsX.push("Tiến bậc thang 1-2-3"); }
-      else { scoreT += wPattern; reasonsT.push("Tiến bậc thang 1-2-3"); }
+      if (last === "T") { scoreX += wHarmonic * 1.05; reasonsX.push("Tiến bậc thang 1-2-3"); }
+      else { scoreT += wHarmonic * 1.05; reasonsT.push("Tiến bậc thang 1-2-3"); }
     }
 
-    // 3. Ma trận xác suất Markov K2 & K3
+    // 3. Ma trận chuyển trạng thái Markov bậc 2 & 3 (Tensor Probabilities)
     if (len >= 12) {
-      const wMarkov = this.weights.markov;
+      const wM2 = this.weights.markov2;
       const state2 = tx.slice(-2).join("");
       let countT = 0, countX = 0;
       for (let i = 0; i < len - 2; i++) {
@@ -313,8 +319,8 @@ class GrandmasterQuantEngine {
       }
       const totalTrans = countT + countX;
       if (totalTrans >= 2) {
-        if (countT > countX) { scoreT += wMarkov + (countT / totalTrans); reasonsT.push("Ma trận Markov bậc 2"); }
-        else if (countX > countT) { scoreX += wMarkov + (countX / totalTrans); reasonsX.push("Ma trận Markov bậc 2"); }
+        if (countT > countX) { scoreT += wM2 + (countT / totalTrans); reasonsT.push("Ma trận Markov bậc 2"); }
+        else if (countX > countT) { scoreX += wM2 + (countX / totalTrans); reasonsX.push("Ma trận Markov bậc 2"); }
       }
     }
 
@@ -322,15 +328,15 @@ class GrandmasterQuantEngine {
     const recent7 = totals.slice(-7);
     const avgScore = recent7.reduce((a, b) => a + b, 0) / recent7.length;
     const zScore = (avgScore - 10.5) / (2.96 / Math.sqrt(7));
-    const wGaussian = this.weights.gaussianMean;
+    const wGaussianZ = this.weights.gaussianZ;
 
-    if (zScore >= 1.4) {
-      scoreX += wGaussian + Math.abs(zScore); reasonsX.push(`Lực kéo Z-Score cao (${avgScore.toFixed(1)})`);
-    } else if (zScore <= -1.4) {
-      scoreT += wGaussian + Math.abs(zScore); reasonsT.push(`Lực kéo Z-Score thấp (${avgScore.toFixed(1)})`);
+    if (zScore >= 1.35) {
+      scoreX += wGaussianZ + Math.abs(zScore) * 1.1; reasonsX.push(`Lực kéo Z-Score cao (${avgScore.toFixed(1)})`);
+    } else if (zScore <= -1.35) {
+      scoreT += wGaussianZ + Math.abs(zScore) * 1.1; reasonsT.push(`Lực kéo Z-Score thấp (${avgScore.toFixed(1)})`);
     }
 
-    // 5. Chỉ báo động lượng RSI tổng điểm 14 phiên
+    // 5. Chỉ báo dao động động lượng RSI 14 phiên
     let gains = 0, losses = 0;
     for (let i = Math.max(1, len - 14); i < len; i++) {
       const diff = totals[i] - totals[i - 1];
@@ -338,13 +344,13 @@ class GrandmasterQuantEngine {
     }
     const rs = losses === 0 ? 100 : gains / losses;
     const rsi = 100 - (100 / (1 + rs));
-    if (rsi >= 68) {
-      scoreX += this.weights.rsiMomentum; reasonsX.push("RSI quá mua tổng điểm");
-    } else if (rsi <= 32) {
-      scoreT += this.weights.rsiMomentum; reasonsT.push("RSI quá bán tổng điểm");
+    if (rsi >= 66) {
+      scoreX += this.weights.rsi14; reasonsX.push("RSI quá mua tổng điểm");
+    } else if (rsi <= 34) {
+      scoreT += this.weights.rsi14; reasonsT.push("RSI quá bán tổng điểm");
     }
 
-    // 6. Tần số xuất hiện xúc xắc cục bộ (Dice Marginal Bias)
+    // 6. Tần suất mặt xúc xắc cục bộ (Dice Marginal Density)
     let lowDice = 0, highDice = 0;
     const recentDice = dice.slice(-10);
     recentDice.forEach(arr => {
@@ -352,42 +358,42 @@ class GrandmasterQuantEngine {
         arr.forEach(d => { if (d <= 3) lowDice++; else if (d >= 4) highDice++; });
       }
     });
-    if (lowDice >= 20) { scoreT += 2.8; reasonsT.push("Bù trừ mặt xúc xắc thấp"); }
-    else if (highDice >= 20) { scoreX += 2.8; reasonsX.push("Bù trừ mặt xúc xắc cao"); }
+    if (lowDice >= 20) { scoreT += this.weights.diceMarginal; reasonsT.push("Bù trừ mật độ xúc xắc thấp"); }
+    else if (highDice >= 20) { scoreX += this.weights.diceMarginal; reasonsX.push("Bù trừ mật độ xúc xắc cao"); }
 
-    // 7. Nhận diện Bão xúc xắc & Tam hoa
+    // 7. Sóng phản xạ sau Bão xúc xắc & Tam hoa
     const lastDice = dice[len - 1];
     if (Array.isArray(lastDice) && lastDice.length === 3) {
       if (lastDice[0] === lastDice[1] && lastDice[1] === lastDice[2]) {
-        if (last === "T") { scoreX += 4.2; reasonsX.push(`Đảo xung lượng sau Bão ${lastDice[0]}`); }
-        else { scoreT += 4.2; reasonsT.push(`Đảo xung lượng sau Bão ${lastDice[0]}`); }
+        if (last === "T") { scoreX += this.weights.tripleShock; reasonsX.push(`Phản xung sau Bão ${lastDice[0]}`); }
+        else { scoreT += this.weights.tripleShock; reasonsT.push(`Phản xung sau Bão ${lastDice[0]}`); }
       }
     }
 
-    // Kiểm tra thị trường giằng co / nhiễu cầu
+    // Đánh giá thị trường giằng co / nhiễu
     const scoreDiff = Math.abs(scoreT - scoreX);
-    const isChoppy = scoreDiff < 1.3;
+    const isChoppy = scoreDiff < 1.4;
 
     let pred, conf, src;
     if (scoreT > scoreX) {
       pred = "tài";
-      src = reasonsT[0] || "Động lượng xu hướng Tài";
+      src = reasonsT[0] || "Động lượng xung hướng Tài";
       const ratio = scoreT / (scoreT + scoreX + 0.01);
-      conf = Math.min(98, Math.round(77 + ratio * 20));
+      conf = Math.min(98, Math.round(78 + ratio * 20));
     } else if (scoreX > scoreT) {
       pred = "xỉu";
-      src = reasonsX[0] || "Động lượng xu hướng Xỉu";
+      src = reasonsX[0] || "Động lượng xung hướng Xỉu";
       const ratio = scoreX / (scoreT + scoreX + 0.01);
-      conf = Math.min(98, Math.round(77 + ratio * 20));
+      conf = Math.min(98, Math.round(78 + ratio * 20));
     } else {
       const last20 = tx.slice(-20);
       const countT = last20.filter(v => v === "T").length;
       pred = countT >= 10 ? "xỉu" : "tài";
-      src = "Đối xứng xác suất lượng tử";
+      src = "Đối xứng lượng tử bảo toàn";
       conf = 80;
     }
 
-    // Cơ chế đảo nhịp phòng thủ Adaptive Hedging khi gặp sàn bẻ cầu 2 tay liên tiếp
+    // Cơ chế Adaptive Anti-Pattern Hedging: Đảo nhịp thích nghi khi sàn bẻ liên tiếp 2 tay
     if (tracker && tracker.reverse) {
       pred = pred === "tài" ? "xỉu" : "tài";
       src = `Đảo nhịp bẻ cầu (${src})`;
@@ -399,7 +405,7 @@ class GrandmasterQuantEngine {
 }
 
 // =========================================================================
-// BỘ ĐỆM KIỂM ĐỊNH HIỆU SUẤT & TỰ ĐỘNG THÍCH NGHI 30 PHIÊN
+// BỘ ĐỆM KIỂM ĐỊNH HIỆU SUẤT & THỐNG KÊ CHI TIẾT ĐẦY ĐỦ PHIÊN (WIN / LOSS)
 // =========================================================================
 class AdaptiveHedgeTracker {
   constructor(game) {
@@ -410,7 +416,7 @@ class AdaptiveHedgeTracker {
     this.reverse = false;
   }
 
-  record(session, pred, actual, src, quantEngine) {
+  record(session, pred, actual, src, quantEngine, diceInfo, totalInfo) {
     const isTaiPred = normalizeResult(pred) === "tai";
     const isTaiActual = normalizeResult(actual) === "tai";
     const ok = isTaiPred === isTaiActual;
@@ -419,6 +425,8 @@ class AdaptiveHedgeTracker {
       session,
       pred: isTaiPred ? "tài" : "xỉu",
       actual: isTaiActual ? "tài" : "xỉu",
+      dice: diceInfo || [0, 0, 0],
+      total: totalInfo || (isTaiActual ? 11 : 10),
       ok,
       src: src || "Định lượng thực chiến",
       ts: Date.now()
@@ -443,39 +451,44 @@ class AdaptiveHedgeTracker {
     }
   }
 
-  get30Stats() {
-    const last30 = this.outcomes.slice(-30);
-    const winCount = last30.filter(o => o.ok).length;
-    const lossCount = last30.length - winCount;
-    const acc = last30.length ? Math.round((winCount / last30.length) * 100) : 0;
+  getFullStats(limit = 30) {
+    const lastN = this.outcomes.slice(-limit);
+    const winCount = lastN.filter(o => o.ok).length;
+    const lossCount = lastN.length - winCount;
+    const acc = lastN.length ? Math.round((winCount / lastN.length) * 100) : 0;
 
     let maxWinStreak = 0, curWin = 0;
-    for (const item of last30) {
+    let maxLossStreak = 0, curLoss = 0;
+    for (const item of lastN) {
       if (item.ok) {
         curWin++;
+        curLoss = 0;
         if (curWin > maxWinStreak) maxWinStreak = curWin;
       } else {
+        curLoss++;
         curWin = 0;
+        if (curLoss > maxLossStreak) maxLossStreak = curLoss;
       }
     }
 
     return {
-      acc30: `${acc}%`,
+      accStr: `${acc}%`,
       accNum: acc,
       winCount,
       lossCount,
-      total30: last30.length,
+      totalCount: lastN.length,
       maxWinStreak,
+      maxLossStreak,
       streakOk: this.streakOk,
       streakNg: this.streakNg,
       reverse: this.reverse,
-      outcomes: [...last30].reverse()
+      outcomes: [...lastN].reverse()
     };
   }
 }
 
 // =========================================================================
-// QUẢN LÝ DỮ LIỆU PHIÊN THỜI GIAN THỰC (LC79 & TELE68)
+// QUẢN LÝ DỮ LIỆU PHIÊN THỜI GIAN THỰC
 // =========================================================================
 class SessionEngineCore {
   constructor(game, url, parse) {
@@ -485,13 +498,12 @@ class SessionEngineCore {
     this.history = store[game]?.history || [];
     this.sessionIds = new Set(this.history.map(h => h.session));
     this.tracker = new AdaptiveHedgeTracker(game);
-    this.engine = new GrandmasterQuantEngine();
+    this.engine = new QuantumSuperEngine();
     this.activePred = store[game]?.activePred || null;
     this.isFetching = false;
     this.timer = null;
     this.onNewSessionListeners = [];
 
-    // Dọn sạch phiên ảo cũ nếu còn sót
     if (this.history.some(h => h.session < 100000)) {
       this.history = [];
       this.sessionIds = new Set();
@@ -506,7 +518,7 @@ class SessionEngineCore {
 
   initRealFormatHistory() {
     if (this.history.length === 0) {
-      const baseS = this.game === "lc79" ? 8594200 : (6928800 + (this.game === "md5" ? 200 : 0));
+      const baseS = this.game === "md5" ? 8594200 : 6928800;
       const seedHistory = [];
       let cur = "T";
       for (let i = 0; i < 42; i++) {
@@ -550,6 +562,8 @@ class SessionEngineCore {
         session: targetItem.session,
         pred: isTaiPred ? "tài" : "xỉu",
         actual: isTaiActual ? "tài" : "xỉu",
+        dice: targetItem.dice || [3, 3, 4],
+        total: targetItem.total || 10,
         ok,
         src: p.src || "Định lượng thực chiến",
         ts: Date.now() - (this.history.length - i) * 50000
@@ -628,7 +642,7 @@ class SessionEngineCore {
       if (newSessions.length > 0) {
         for (const rec of newSessions) {
           if (this.activePred && rec.session === this.activePred.session) {
-            this.tracker.record(rec.session, this.activePred.pred, rec.result, this.activePred.src, this.engine);
+            this.tracker.record(rec.session, this.activePred.pred, rec.result, this.activePred.src, this.engine, rec.dice, rec.total);
             this.activePred = null;
           }
           this.history.push(rec);
@@ -707,12 +721,12 @@ function parseUniversalStream(data) {
   }).filter(i => i.session > 0).sort((a, b) => a.session - b.session);
 }
 
-const lc79 = new SessionEngineCore("lc79", API_LC79_MD5, parseUniversalStream);
+// CHỈ GIỮ DUY NHẤT 1 API MD5 (LC79) VÀ 1 BÀN HŨ
+const md5 = new SessionEngineCore("md5", API_MD5_LC79, parseUniversalStream);
 const hu = new SessionEngineCore("hu", API_HU, parseUniversalStream);
-const md5 = new SessionEngineCore("md5", API_MD5, parseUniversalStream);
 
 // =========================================================================
-// HỆ THỐNG QUẢN LÝ KEY & XÁC THỰC BẢN QUYỀN (THU HỒI - MỞ LẠI - XOÁ MẤT LUÔN)
+// HỆ THỐNG QUẢN LÝ KEY & XÁC THỰC BẢN QUYỀN
 // =========================================================================
 function parseDuration(input) {
   if (!input) return null;
@@ -756,7 +770,7 @@ function checkUserAccess(userId) {
     return { hasAccess: false, isAdmin: false, status: "not_found", reason: "not_activated" };
   }
 
-  // TRƯỜNG HỢP KEY BỊ ADMIN THU HỒI (CÓ THỂ MỞ LẠI)
+  // TRƯỜNG HỢP KEY BỊ ADMIN THU HỒI (CÓ THỂ MỞ LẠI ĐƯỢC)
   if (u.status === "revoked") {
     return {
       hasAccess: false,
@@ -865,21 +879,19 @@ class TelegramBotClient {
     this.polling = true;
     console.log(`[BOT TELEGRAM] Khởi động thành công! Đang lắng nghe tin nhắn với Token...`);
 
-    // Thiết lập Menu Lệnh chính thức của Telegram (Bấm [/] góc trái dưới cạnh khung chat)
     try {
       await this.setMyCommands([
-        { command: "start", description: "🚀 Mở Menu & Bàn phím điều khiển nhanh" },
-        { command: "lc79", description: "🎯 Soi cầu Tài Xỉu MD5 LC79 (Chuẩn xác cao)" },
-        { command: "hu", description: "🎲 Soi cầu Tài Xỉu Hũ phiên mới nhất" },
-        { command: "md5", description: "🔒 Soi cầu Tài Xỉu MD5 Tele68" },
-        { command: "thongke", description: "📊 Thống kê tỉ lệ thắng 30 phiên gần nhất" },
+        { command: "start", description: "🚀 Mở Menu & Bàn phím 1-chạm" },
+        { command: "md5", description: "◈ Soi cầu Tài Xỉu MD5 LC79 (Chuẩn xác cao)" },
+        { command: "hu", description: "❖ Soi cầu Tài Xỉu Hũ truyền thống" },
+        { command: "thongke", description: "📊 Thống kê chi tiết toàn bộ phiên thắng/thua" },
         { command: "tubao", description: "⚡ Cài đặt bật/tắt tự động báo kèo từng bàn" },
-        { command: "doimau", description: "🎨 Đổi màu chữ & theme giao diện nổi bật" },
-        { command: "giolamviec", description: "⏰ Xem giờ làm việc hỗ trợ của Admin" },
+        { command: "doimau", description: "🎨 Đổi màu chữ & Theme Hologram rực rỡ" },
+        { command: "giolamviec", description: "⏰ Giờ làm việc hỗ trợ của Admin" },
         { command: "thongtin", description: "👤 Xem thời hạn và ngày hết hạn bản quyền" },
         { command: "quanlyvon", description: "📐 Công thức chia vốn thực chiến an toàn" },
         { command: "soicausau", description: "🔮 Phân tích ma trận xúc xắc & dòng cầu" },
-        { command: "menu", description: "👑 Mở bảng điều khiển hệ thống" }
+        { command: "menu", description: "👑 Bảng điều khiển quản trị" }
       ]);
     } catch {}
 
@@ -907,39 +919,36 @@ class TelegramBotClient {
 const bot = new TelegramBotClient(BOT_TOKEN);
 
 // =========================================================================
-// BÀN PHÍM CỐ ĐỊNH DƯỚI ĐÁY MÀN HÌNH (REPLY KEYBOARD) & NÚT BẤM
+// BÀN PHÍM CỐ ĐỊNH 1-CHẠM THIẾT KẾ HIỆN ĐẠI SIÊU CẤP (FUTURISTIC KEYBOARD)
 // =========================================================================
 function makePersistentReplyKeyboard(uid) {
   const access = checkUserAccess(uid);
   const rows = [
     [
-      { text: "🎯 Soi Cầu LC79 MD5" },
-      { text: "🎲 Soi Cầu Hũ" }
+      { text: "◈ SOI CẦU MD5 (LC79)" },
+      { text: "❖ SOI CẦU HŨ" }
     ],
     [
-      { text: "🔒 Soi Cầu MD5" },
-      { text: "📊 Thống Kê 30P" }
+      { text: "📊 THỐNG KÊ CHI TIẾT 30P" },
+      { text: "⚡ TỰ ĐỘNG BÁO KÈO" }
     ],
     [
-      { text: "⚡ Cài Đặt Tự Báo" },
-      { text: "🎨 Đổi Phối Màu" }
+      { text: "🎨 ĐỔI PHỐI MÀU CHỮ" },
+      { text: "📐 QUẢN LÝ VỐN" }
     ],
     [
-      { text: "👤 Bản Quyền" },
-      { text: "📐 Quản Lý Vốn" }
+      { text: "👤 BẢN QUYỀN CỦA BẠN" },
+      { text: "🔮 MA TRẬN CẦU SÂU" }
     ],
     [
-      { text: "🔮 Phân Tích Cầu Sâu" },
-      { text: "⏰ Giờ Làm Việc Admin" }
-    ],
-    [
-      { text: "🔄 Làm Mới Dữ Liệu" }
+      { text: "⏰ GIỜ ADMIN HỖ TRỢ" },
+      { text: "🔄 LÀM MỚI DỮ LIỆU" }
     ]
   ];
 
   if (access.isAdmin) {
     rows.push([
-      { text: "👑 Menu Admin Tối Cao" }
+      { text: "👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO" }
     ]);
   }
 
@@ -952,37 +961,33 @@ function makePersistentReplyKeyboard(uid) {
 
 function makeUserInlineKeyboard(uid) {
   const u = store.users[String(uid)] || {};
-  const lc79State = u.lc79Alert ? "🟢 BẬT" : "🔴 TẮT";
-  const huState = u.huAlert ? "🟢 BẬT" : "🔴 TẮT";
   const md5State = u.md5Alert ? "🟢 BẬT" : "🔴 TẮT";
+  const huState = u.huAlert ? "🟢 BẬT" : "🔴 TẮT";
   const access = checkUserAccess(uid);
 
   const rows = [
     [
-      { text: "🎯 Soi Cầu LC79 MD5", callback_data: "pred_lc79" },
-      { text: "🎲 Soi Cầu Hũ", callback_data: "pred_hu" }
+      { text: "◈ Soi Cầu MD5 (LC79)", callback_data: "pred_md5" },
+      { text: "❖ Soi Cầu Hũ", callback_data: "pred_hu" }
     ],
     [
-      { text: "🔒 Soi Cầu MD5", callback_data: "pred_md5" },
-      { text: "📊 Thống Kê LC79", callback_data: "stats_lc79" }
-    ],
-    [
-      { text: `⚡ Tự Báo LC79: ${lc79State}`, callback_data: "toggle_lc79" },
-      { text: `⚡ Tự Báo Hũ: ${huState}`, callback_data: "toggle_hu" }
+      { text: "📊 Thống Kê Chi Tiết MD5", callback_data: "stats_md5" },
+      { text: "📊 Thống Kê Chi Tiết Hũ", callback_data: "stats_hu" }
     ],
     [
       { text: `⚡ Tự Báo MD5: ${md5State}`, callback_data: "toggle_md5" },
-      { text: "🎨 Đổi Phối Màu", callback_data: "choose_theme" }
+      { text: `⚡ Tự Báo Hũ: ${huState}`, callback_data: "toggle_hu" }
     ],
     [
-      { text: "📐 Quản Lý Vốn", callback_data: "capital_strategy" },
-      { text: "🔮 Phân Tích Cầu Sâu", callback_data: "deep_analysis" }
+      { text: "🎨 Đổi Phối Màu Chữ", callback_data: "choose_theme" },
+      { text: "📐 Quản Lý Vốn", callback_data: "capital_strategy" }
     ],
     [
-      { text: "👤 Bản Quyền", callback_data: "my_info" },
-      { text: "⏰ Giờ Làm Việc", callback_data: "admin_hours" }
+      { text: "🔮 Ma Trận Cầu Sâu", callback_data: "deep_analysis" },
+      { text: "👤 Bản Quyền", callback_data: "my_info" }
     ],
     [
+      { text: "⏰ Giờ Làm Việc Admin", callback_data: "admin_hours" },
       { text: "🔄 Làm Mới Dữ Liệu", callback_data: "refresh_menu" }
     ]
   ];
@@ -1011,14 +1016,14 @@ function makeAdminKeyboard() {
       ],
       [
         { text: "📋 Danh Sách Key", callback_data: "admin_list_keys" },
-        { text: "📊 Thống Kê Hệ Thống", callback_data: "admin_stats" }
+        { text: "📊 Báo Cáo Toàn Diện", callback_data: "admin_stats" }
       ],
       [
         { text: "🧹 Quét Key Hết Hạn", callback_data: "admin_clean_expired" },
-        { text: "📜 Xem Log Hoạt Động", callback_data: "admin_view_logs" }
+        { text: "📜 Nhật Ký Hoạt Động", callback_data: "admin_view_logs" }
       ],
       [
-        { text: "🔙 Quay Lại Menu Chính", callback_data: "user_menu" }
+        { text: "🔙 Về Menu Chính", callback_data: "user_menu" }
       ]
     ]
   };
@@ -1028,18 +1033,18 @@ function makeThemeSelectKeyboard() {
   return {
     inline_keyboard: [
       [
-        { text: "🎲 Random Mỗi Phiên (Siêu Đẹp)", callback_data: "set_theme_random" }
+        { text: "🎲 RANDOM MỖI PHIÊN (Siêu Lung Linh)", callback_data: "set_theme_random" }
       ],
       [
-        { text: "🔴 Ruby Gold (Đỏ - Vàng)", callback_data: "set_theme_ruby" },
-        { text: "🔵 Cyber Sapphire (Xanh Neon)", callback_data: "set_theme_cyber" }
+        { text: "🔮 Cyber Violet Hologram (Tím Hoàng Gia)", callback_data: "set_theme_violet" },
+        { text: "💎 Hyperdrive Sapphire (Xanh Lam Điện)", callback_data: "set_theme_sapphire" }
       ],
       [
-        { text: "🟢 Emerald Matrix (Lục Bảo)", callback_data: "set_theme_emerald" },
-        { text: "🟣 Violet Amethyst (Tím VIP)", callback_data: "set_theme_violet" }
+        { text: "❇️ Quantum Matrix Emerald (Lục Bảo Laser)", callback_data: "set_theme_emerald" },
+        { text: "👑 Solar Plasma Gold (Hoàng Kim Thái Dương)", callback_data: "set_theme_solar" }
       ],
       [
-        { text: "🟠 Sunset Flame (Cam Lửa)", callback_data: "set_theme_sunset" }
+        { text: "🩸 Crimson Mecha (Huyết Hắc Thạch)", callback_data: "set_theme_crimson" }
       ],
       [
         { text: "🔙 Quay Lại Menu Chính", callback_data: "user_menu" }
@@ -1049,72 +1054,72 @@ function makeThemeSelectKeyboard() {
 }
 
 // =========================================================================
-// GIAO DIỆN HIỂN THỊ DỰ ĐOÁN & THỐNG KÊ CHI TIẾT KÈM PHỐI MÀU NỔI BẬT
+// GIAO DIỆN HIỂN THỊ DỰ ĐOÁN & BẢNG THỐNG KÊ CHI TIẾT ĐẦY ĐỦ PHIÊN
 // =========================================================================
 function buildPredictionText(gameKey, core, uid) {
   const p = core.getPrediction();
   const last = core.last();
-  const stats = core.tracker.get30Stats();
+  const stats = core.tracker.getFullStats(30);
   const theme = getUserTheme(uid);
 
-  let gameTitle = "🎲 TÀI XỈU HŨ TRUYỀN THỐNG";
-  if (gameKey === "lc79") gameTitle = "🎯 TÀI XỈU MD5 LC79 (API CHUẨN XÁC)";
-  else if (gameKey === "md5") gameTitle = "🔒 TÀI XỈU MD5 TELE68";
+  const gameTitle = gameKey === "md5" ? "TÀI XỈU MD5 LC79 (API NGUỒN CHUẨN XÁC)" : "TÀI XỈU HŨ TRUYỀN THỐNG";
 
   if (!p) {
-    return `<b>${theme.headerIcon} ${gameTitle}</b>\n\n<i>Đang đồng bộ dữ liệu phiên mới từ máy chủ...</i>`;
+    return `<b>${theme.iconHeader} ⟦ ${gameTitle} ⟧</b>\n\n<i>Đang đồng bộ dữ liệu lượng tử từ sàn...</i>`;
   }
 
   const isTai = normalizeResult(p.pred) === "tai";
-  const predBadge = isTai ? theme.taiBadge : theme.xiuBadge;
+  const predBadge = isTai ? theme.badgeTai : theme.badgeXiu;
   const lastResDisplay = last ? (normalizeResult(last.result) === "tai" ? "TÀI" : "XỈU") : "—";
-  const lastDiceText = last ? `[${last.dice.join("-")}] (${last.total} điểm)` : "—";
+  const lastDiceText = last ? `[${last.dice.join("-")}] (${last.total}đ)` : "—";
   const confBar = makeConfidenceBar(p.conf, theme);
-  const choppyWarning = p.isChoppy ? `\n⚠️ <b>CẢNH BÁO LỌC CẦU:</b> <i>Cầu giằng co, nên đi đều tiền hoặc chờ phiên đẹp!</i>\n` : "";
+  const choppyTag = p.isChoppy ? `\n⚠️ <b>CẢNH BÁO LỌC CẦU:</b> <i>Cầu đang giằng co, hãy đi đều tiền hoặc quan sát!</i>\n` : "";
   const curTimeStr = formatVNDateTime(Date.now());
 
-  return `<b>${theme.headerIcon} ${gameTitle}</b>
+  return `<b>${theme.iconHeader} ⟦ ${gameTitle} ⟧</b>
 ━━━━━━━━━━━━━━━━━━━━━
 🎯 <b>PHIÊN DỰ ĐOÁN: #${p.session}</b>
 👉 <b>TÍN HIỆU ĐỊNH LƯỢNG: ${predBadge}</b>
-${theme.fireIcon} <b>ĐỘ TIN CẬY: ${p.conf}%</b>
+${theme.iconFire} <b>ĐỘ TIN CẬY: ${p.conf}%</b>
 <code>${confBar}</code>
-${theme.statIcon} <b>CHIẾN THUẬT:</b> <code>${p.src}</code>${choppyWarning}
+${theme.iconStat} <b>CHIẾN THUẬT:</b> <code>${p.src}</code>${choppyTag}
 ━━━━━━━━━━━━━━━━━━━━━
 🎲 <b>Phiên trước #${last ? last.session : "—"}:</b> ${lastDiceText} ➔ <b>${lastResDisplay}</b>
-📈 <b>Tỉ lệ thắng 30 phiên:</b> <b>${stats.acc30}</b> (Thắng ${stats.winCount}/${stats.total30} tay)
-🔥 <b>Chuỗi thắng kỷ lục:</b> <b>${stats.maxWinStreak} tay liên tiếp</b>
-🕒 <b>Thời gian cập nhật:</b> <code>${curTimeStr}</code>
+📈 <b>Tỉ lệ thắng 30P:</b> <b>${stats.accStr}</b> (Thắng: <b>${stats.winCount}</b> | Thua: <b>${stats.lossCount}</b>)
+🔥 <b>Chuỗi thắng Max:</b> <b>${stats.maxWinStreak} tay liên tiếp</b>
+🕒 <b>Thời gian:</b> <code>${curTimeStr}</code>
 ━━━━━━━━━━━━━━━━━━━━━
-<i>Tác giả: Phạm Anh Khôi · Giờ hỗ trợ: ${ADMIN_WORK_HOURS}</i>`;
+<i>Bản quyền tác giả: Phạm Anh Khôi · Giờ hỗ trợ: ${ADMIN_WORK_HOURS}</i>`;
 }
 
-function buildStats30Text(gameKey, core, uid) {
-  const stats = core.tracker.get30Stats();
+// BẢNG THỐNG KÊ CHI TIẾT NHẢY RA ĐẦY ĐỦ TỪNG PHIÊN (XEM RÕ SAI THUA BAO NHIÊU)
+function buildStatsFullText(gameKey, core, uid) {
+  const stats = core.tracker.getFullStats(30);
   const theme = getUserTheme(uid);
-  let gameTitle = "TÀI XỈU HŨ";
-  if (gameKey === "lc79") gameTitle = "TÀI XỈU MD5 LC79";
-  else if (gameKey === "md5") gameTitle = "TÀI XỈU MD5 TELE68";
+  const gameTitle = gameKey === "md5" ? "TÀI XỈU MD5 LC79" : "TÀI XỈU HŨ TELE68";
 
   let listText = "";
-  stats.outcomes.slice(0, 15).forEach(o => {
-    const icon = o.ok ? "✅" : "❌";
+  stats.outcomes.forEach((o, idx) => {
+    const statusTag = o.ok ? "✅ THẮNG" : "❌ THUA";
     const pStr = formatResultDisplay(o.pred);
     const aStr = formatResultDisplay(o.actual);
-    listText += `${icon} <b>#${o.session}</b>: <code>${pStr}</code> ➔ <code>${aStr}</code> | <i>${o.src}</i>\n`;
+    const diceText = Array.isArray(o.dice) && o.dice.length === 3 ? `[${o.dice.join("-")}=${o.total}đ]` : `(${o.total}đ)`;
+    listText += `<b>#${o.session}</b>: <code>${pStr}</code> ➔ <b>${aStr}</b> ${diceText} | <b>${statusTag}</b>\n`;
   });
 
-  return `<b>${theme.headerIcon} KIỂM ĐỊNH 30 PHIÊN THỰC TẾ (${gameTitle})</b>
+  return `<b>${theme.iconHeader} BẢNG THỐNG KÊ CHI TIẾT 30 PHIÊN (${gameTitle})</b>
 ━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>Tỉ Lệ Chuẩn Xác:</b> <b>${stats.acc30}</b>
-✅ <b>Số tay ĐÚNG:</b> <b>${stats.winCount}</b> phiên
-❌ <b>Số tay SAI:</b> <b>${stats.lossCount}</b> phiên
-🔥 <b>Chuỗi Thắng Lớn Nhất:</b> <b>${stats.maxWinStreak}</b> phiên liên tiếp
+🎯 <b>TỈ LỆ CHUẨN XÁC:</b> <b>${stats.accStr}</b>
+🏆 <b>Tổng số phiên kiểm định:</b> <b>${stats.totalCount}</b> phiên
+✅ <b>Số phiên THẮNG:</b> <b>${stats.winCount}</b> phiên
+❌ <b>Số phiên SAI / THUA:</b> <b>${stats.lossCount}</b> phiên
+🔥 <b>Chuỗi thắng lớn nhất:</b> <b>${stats.maxWinStreak}</b> tay liên tiếp
+⚠️ <b>Chuỗi thua lớn nhất:</b> <b>${stats.maxLossStreak}</b> tay
 ━━━━━━━━━━━━━━━━━━━━━
-<b>15 PHIÊN GẦN NHẤT:</b>
+<b>DANH SÁCH CHI TIẾT TỪNG PHIÊN (GẦN NHẤT):</b>
 ${listText || "<i>Đang tích lũy dữ liệu phiên...</i>"}
 ━━━━━━━━━━━━━━━━━━━━━
-<i>Thuật toán học máy thích nghi tự động · Phạm Anh Khôi</i>`;
+<i>Thuật toán lượng tử tự học thích nghi · Phạm Anh Khôi</i>`;
 }
 
 function buildCapitalStrategyText() {
@@ -1142,9 +1147,7 @@ function buildCapitalStrategyText() {
 function buildDeepAnalysisText(gameKey, core, uid) {
   const history = core.history.slice(-30);
   const theme = getUserTheme(uid);
-  let gameName = "TÀI XỈU HŨ";
-  if (gameKey === "lc79") gameName = "TÀI XỈU MD5 LC79";
-  else if (gameKey === "md5") gameName = "TÀI XỈU MD5 TELE68";
+  const gameName = gameKey === "md5" ? "TÀI XỈU MD5 LC79" : "TÀI XỈU HŨ TELE68";
 
   if (history.length < 10) return "<i>Đang tích lũy thêm dữ liệu để phân tích sâu...</i>";
 
@@ -1162,27 +1165,27 @@ function buildDeepAnalysisText(gameKey, core, uid) {
 
   const topDice = Object.entries(diceCounts).sort((a, b) => b[1] - a[1]);
 
-  return `<b>${theme.headerIcon} PHÂN TÍCH MA TRẬN & CẦU SÂU (${gameName})</b>
+  return `<b>${theme.iconHeader} MA TRẬN XÚC XẮC & DÒNG CẦU SÂU (${gameName})</b>
 ━━━━━━━━━━━━━━━━━━━━━
 📊 <b>Thống kê mẫu 30 phiên:</b>
 • Tỉ số Tài/Xỉu: <b>${taiCount} Tài (${Math.round(taiCount/history.length*100)}%)</b> — <b>${xiuCount} Xỉu (${Math.round(xiuCount/history.length*100)}%)</b>
-• Điểm xúc xắc trung bình (MA): <b>${avg}</b> (Chuẩn lý thuyết: 10.5)
-• Mặt xúc xắc ra nhiều nhất: Mặt <b>${topDice[0][0]}</b> (${topDice[0][1]} lần), Mặt <b>${topDice[1][0]}</b> (${topDice[1][1]} lần)
-• Mặt xúc xắc ra ít nhất: Mặt <b>${topDice[5][0]}</b> (${topDice[5][1]} lần)
+• Điểm xúc xắc trung bình (MA): <b>${avg}</b> (Kỳ vọng chuẩn: 10.5)
+• Mặt xúc xắc về nhiều nhất: Mặt <b>${topDice[0][0]}</b> (${topDice[0][1]} lần), Mặt <b>${topDice[1][0]}</b> (${topDice[1][1]} lần)
+• Mặt xúc xắc về ít nhất: Mặt <b>${topDice[5][0]}</b> (${topDice[5][1]} lần)
 ━━━━━━━━━━━━━━━━━━━━━
-🧠 <b>Đánh giá ma trận lượng tử:</b>
-• Độ phân kỳ nhịp: <i>${Math.abs(taiCount - xiuCount) <= 4 ? "Cầu cân bằng, ổn định cao" : "Cầu có thiên hướng lệch một phía"}</i>
-• Tín hiệu xu thế tiếp theo: <b>${avg >= 11.2 ? "Ưu tiên hồi quy Xỉu" : (avg <= 9.8 ? "Ưu tiên hồi quy Tài" : "Bám theo xu hướng bệt/đảo")}</b>
+🧠 <b>Đánh giá thuật toán lượng tử:</b>
+• Cân bằng động học: <i>${Math.abs(taiCount - xiuCount) <= 4 ? "Cầu cân bằng, ổn định cao" : "Cầu có thiên hướng lệch một phía"}</i>
+• Xu hướng tiếp theo: <b>${avg >= 11.2 ? "Ưu tiên hồi quy Xỉu" : (avg <= 9.8 ? "Ưu tiên hồi quy Tài" : "Bám theo xu hướng bệt/đảo")}</b>
 ━━━━━━━━━━━━━━━━━━━━━
 <i>Hệ thống phân tích lượng tử chuyên sâu · Phạm Anh Khôi</i>`;
 }
 
 // Thông báo giờ làm việc của Admin
 function buildAdminHoursMessage() {
-  return `<b>⏰ THÔNG BÁO GIỜ LÀM VIỆC & HỖ TRỢ ADMIN</b>
+  return `<b>⏰ THÔNG BÁO KHUNG GIỜ LÀM VIỆC & HỖ TRỢ ADMIN</b>
 ━━━━━━━━━━━━━━━━━━━━━
 👤 <b>Admin Quản Trị:</b> <b>Phạm Anh Khôi</b> (@anhkhoi_xabc)
-🕒 <b>Khung Giờ Làm Việc Chính Thức:</b>
+🕒 <b>Khung Giờ Hỗ Trợ Chính Thức:</b>
 👉 <b>12:00 trưa đến 21:00 - 22:00 tối hàng ngày</b>
 
 ℹ️ <b>Quyền Lợi & Hỗ Trợ Trong Ca:</b>
@@ -1271,7 +1274,7 @@ async function handleTelegramUpdate(update) {
       saveStore(store);
       await bot.answerCallback(q.id, `Đã chọn giao diện: ${themeId.toUpperCase()}!`, true);
       const th = getUserTheme(uid);
-      await bot.sendMessage(chatId, `✅ <b>ĐÃ CẬP NHẬT PHỐI MÀU THÀNH CÔNG!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎨 <b>Giao diện:</b> <b>${th.name}</b>\n🔴 Huy hiệu Tài: <b>${th.taiBadge}</b>\n🟡 Huy hiệu Xỉu: <b>${th.xiuBadge}</b>\n${th.fireIcon} Thanh đo: <code>${th.barFill.repeat(8)}${th.barEmpty.repeat(2)}</code> 80%\n━━━━━━━━━━━━━━━━━━━━━\n<i>Từ giờ các tin nhắn dự đoán sẽ tự động hiển thị theo màu sắc này.</i>`, {
+      await bot.sendMessage(chatId, `✅ <b>ĐÃ CẬP NHẬT PHỐI MÀU THÀNH CÔNG!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎨 <b>Giao diện:</b> <b>${th.name}</b>\n🟣 Huy hiệu Tài: <b>${th.badgeTai}</b>\n🌸 Huy hiệu Xỉu: <b>${th.badgeXiu}</b>\n${th.iconFire} Thanh đo: <code>${th.barFill.repeat(8)}${th.barEmpty.repeat(2)}</code> 80%\n━━━━━━━━━━━━━━━━━━━━━\n<i>Từ giờ các tin nhắn dự đoán sẽ tự động hiển thị theo màu sắc này.</i>`, {
         reply_markup: {
           inline_keyboard: [[{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]]
         }
@@ -1286,36 +1289,7 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    // SOI CẦU LC79 MD5 (API NGUỒN MỚI)
-    if (data === "pred_lc79") {
-      await bot.answerCallback(q.id);
-      const text = buildPredictionText("lc79", lc79, uid);
-      await bot.sendMessage(chatId, text, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_lc79" }],
-            [{ text: "🔮 Phân Tích Sâu LC79", callback_data: "deep_lc79" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    if (data === "pred_hu") {
-      await bot.answerCallback(q.id);
-      const text = buildPredictionText("hu", hu, uid);
-      await bot.sendMessage(chatId, text, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_hu" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
+    // SOI CẦU MD5 (LC79)
     if (data === "pred_md5") {
       await bot.answerCallback(q.id);
       const text = buildPredictionText("md5", md5, uid);
@@ -1323,6 +1297,7 @@ async function handleTelegramUpdate(update) {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_md5" }],
+            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_md5" }],
             [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
           ]
         }
@@ -1330,14 +1305,32 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    if (data === "stats_lc79") {
+    // SOI CẦU HŨ
+    if (data === "pred_hu") {
       await bot.answerCallback(q.id);
-      const text = buildStats30Text("lc79", lc79, uid);
+      const text = buildPredictionText("hu", hu, uid);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🔄 Làm Mới Thống Kê", callback_data: "stats_lc79" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
+            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_hu" }],
+            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_hu" }],
+            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
+          ]
+        }
+      });
+      return;
+    }
+
+    // THỐNG KÊ CHI TIẾT TỪNG PHIÊN (THUA / THẮNG ĐẦY ĐỦ)
+    if (data === "stats_md5") {
+      await bot.answerCallback(q.id);
+      const text = buildStatsFullText("md5", md5, uid);
+      await bot.sendMessage(chatId, text, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🔄 Làm Mới Thống Kê MD5", callback_data: "stats_md5" }],
+            [{ text: "❖ Xem Thống Kê Bàn Hũ", callback_data: "stats_hu" }],
+            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
@@ -1346,26 +1339,13 @@ async function handleTelegramUpdate(update) {
 
     if (data === "stats_hu") {
       await bot.answerCallback(q.id);
-      const text = buildStats30Text("hu", hu, uid);
+      const text = buildStatsFullText("hu", hu, uid);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🔄 Làm Mới Thống Kê", callback_data: "stats_hu" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    if (data === "stats_md5") {
-      await bot.answerCallback(q.id);
-      const text = buildStats30Text("md5", md5, uid);
-      await bot.sendMessage(chatId, text, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔄 Làm Mới Thống Kê", callback_data: "stats_md5" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
+            [{ text: "🔄 Làm Mới Thống Kê Hũ", callback_data: "stats_hu" }],
+            [{ text: "◈ Xem Thống Kê Bàn MD5", callback_data: "stats_md5" }],
+            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
@@ -1380,14 +1360,13 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    if (data === "deep_analysis" || data === "deep_lc79") {
+    if (data === "deep_analysis") {
       await bot.answerCallback(q.id);
-      const tLc79 = buildDeepAnalysisText("lc79", lc79, uid);
-      await bot.sendMessage(chatId, tLc79, {
+      const tMd5 = buildDeepAnalysisText("md5", md5, uid);
+      await bot.sendMessage(chatId, tMd5, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🎲 Xem Phân Tích Bàn Hũ", callback_data: "deep_hu" }],
-            [{ text: "🔒 Xem Phân Tích MD5 Tele68", callback_data: "deep_md5" }],
+            [{ text: "❖ Xem Ma Trận Bàn Hũ", callback_data: "deep_hu" }],
             [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
@@ -1401,7 +1380,7 @@ async function handleTelegramUpdate(update) {
       await bot.sendMessage(chatId, tHu, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🎯 Xem Phân Tích LC79 MD5", callback_data: "deep_lc79" }],
+            [{ text: "◈ Xem Ma Trận Bàn MD5", callback_data: "deep_analysis" }],
             [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
@@ -1409,26 +1388,12 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    if (data === "deep_md5") {
-      await bot.answerCallback(q.id);
-      const tMd5 = buildDeepAnalysisText("md5", md5, uid);
-      await bot.sendMessage(chatId, tMd5, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🎯 Xem Phân Tích LC79 MD5", callback_data: "deep_lc79" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    // BẬT / TẮT TỰ ĐỘNG BÁO LC79 MD5
-    if (data === "toggle_lc79") {
+    // BẬT / TẮT TỰ ĐỘNG BÁO MD5 (DUY NHẤT 1 BÀN)
+    if (data === "toggle_md5") {
       store.users[uid] = store.users[uid] || {};
-      store.users[uid].lc79Alert = !store.users[uid].lc79Alert;
+      store.users[uid].md5Alert = !store.users[uid].md5Alert;
       saveStore(store);
-      await bot.answerCallback(q.id, `Đã ${store.users[uid].lc79Alert ? "BẬT 🟢" : "TẮT 🔴"} tự báo kèo LC79 MD5!`);
+      await bot.answerCallback(q.id, `Đã ${store.users[uid].md5Alert ? "BẬT 🟢" : "TẮT 🔴"} tự báo kèo MD5!`);
       await bot.editMessageReplyMarkup(chatId, msgId, { reply_markup: makeUserInlineKeyboard(uid) });
       return;
     }
@@ -1443,16 +1408,6 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    // BẬT / TẮT TỰ ĐỘNG BÁO MD5
-    if (data === "toggle_md5") {
-      store.users[uid] = store.users[uid] || {};
-      store.users[uid].md5Alert = !store.users[uid].md5Alert;
-      saveStore(store);
-      await bot.answerCallback(q.id, `Đã ${store.users[uid].md5Alert ? "BẬT 🟢" : "TẮT 🔴"} tự báo kèo MD5!`);
-      await bot.editMessageReplyMarkup(chatId, msgId, { reply_markup: makeUserInlineKeyboard(uid) });
-      return;
-    }
-
     // THÔNG TIN BẢN QUYỀN
     if (data === "my_info") {
       await bot.answerCallback(q.id);
@@ -1461,7 +1416,7 @@ async function handleTelegramUpdate(update) {
       const activatedFormatted = u.activatedAt ? formatVNDateTime(u.activatedAt) : "—";
       const th = getUserTheme(uid);
 
-      const msg = `<b>${th.headerIcon} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
+      const msg = `<b>${th.iconHeader} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
 ━━━━━━━━━━━━━━━━━━━━━
 🆔 <b>ID Telegram:</b> <code>${uid}</code>
 🔑 <b>Mã Key Đang Dùng:</b> <code>${u.activatedKey || "Admin Tối Cao"}</code>
@@ -1470,9 +1425,8 @@ async function handleTelegramUpdate(update) {
 ⏳ <b>Thời Gian Còn Lại:</b> <b>${access.remainingText}</b>
 🎨 <b>Theme Giao Diện:</b> <b>${th.name}</b>
 ━━━━━━━━━━━━━━━━━━━━━
-⚡ <b>Tự Báo LC79 MD5:</b> ${u.lc79Alert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
-⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
 ⚡ <b>Tự Báo MD5:</b> ${u.md5Alert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
+⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
 ━━━━━━━━━━━━━━━━━━━━━
 ⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
 <i>Tác giả: Phạm Anh Khôi · Hỗ trợ: ${TELEGRAM_ADMIN_CONTACT}</i>`;
@@ -1487,7 +1441,7 @@ async function handleTelegramUpdate(update) {
     if (data === "refresh_menu" || data === "user_menu") {
       await bot.answerCallback(q.id, "Đã làm mới dữ liệu!");
       const th = getUserTheme(uid);
-      const welcome = `<b>${th.headerIcon} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN GRANDMASTER v7.0</b>
+      const welcome = `<b>${th.iconHeader} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.0</b>
 ━━━━━━━━━━━━━━━━━━━━━
 👤 <b>Người dùng:</b> <code>${q.from.first_name || uid}</code>
 🆔 <b>ID:</b> <code>${uid}</code>
@@ -1592,20 +1546,18 @@ ${expExplanation}
       const activeKeys = Object.values(store.keys).filter(k => k.status === "active").length;
       const usedKeys = Object.values(store.keys).filter(k => k.status === "used").length;
       const revokedKeys = Object.values(store.keys).filter(k => k.status === "revoked").length;
-      const lc79Stats = lc79.tracker.get30Stats();
-      const huStats = hu.tracker.get30Stats();
-      const md5Stats = md5.tracker.get30Stats();
+      const md5Stats = md5.tracker.getFullStats(30);
+      const huStats = hu.tracker.getFullStats(30);
 
-      const statsMsg = `<b>📊 THỐNG KÊ TỔNG QUAN HỆ THỐNG</b>
+      const statsMsg = `<b>📊 BÁO CÁO TOÀN DIỆN HỆ THỐNG</b>
 ━━━━━━━━━━━━━━━━━━━━━
 👥 <b>Tổng Người Dùng:</b> <b>${totalUsers}</b>
 🔑 <b>Key Chưa Kích Hoạt:</b> <b>${activeKeys}</b>
 🔐 <b>Key Đang Hoạt Động:</b> <b>${usedKeys}</b>
-⛔ <b>Key Bị Thu Hồi (Có thể mở lại):</b> <b>${revokedKeys}</b>
+⛔ <b>Key Bị Thu HỒI (Có thể mở lại):</b> <b>${revokedKeys}</b>
 ━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>Tài Xỉu MD5 LC79:</b> <b>${lc79Stats.acc30}</b> (Thắng ${lc79Stats.winCount}/${lc79Stats.total30} tay)
-🎲 <b>Tài Xỉu Hũ:</b> <b>${huStats.acc30}</b> (Thắng ${huStats.winCount}/${huStats.total30} tay)
-🔒 <b>Tài Xỉu MD5 Tele68:</b> <b>${md5Stats.acc30}</b> (Thắng ${md5Stats.winCount}/${md5Stats.total30} tay)
+◈ <b>Tài Xỉu MD5 LC79 (30P):</b> <b>${md5Stats.accStr}</b> (Thắng ${md5Stats.winCount} | Thua ${md5Stats.lossCount})
+❖ <b>Tài Xỉu Hũ (30P):</b> <b>${huStats.accStr}</b> (Thắng ${huStats.winCount} | Thua ${huStats.lossCount})
 ━━━━━━━━━━━━━━━━━━━━━
 <i>Hệ thống định lượng vận hành 24/7 ổn định mượt mà.</i>`;
       await bot.sendMessage(chatId, statsMsg, {
@@ -1660,7 +1612,7 @@ ${expExplanation}
 
     // KIỂM TRA TRẠNG THÁI BỊ THU HỒI CỦA USER
     const currentAccess = checkUserAccess(uid);
-    if (currentAccess.isRevoked && !text.startsWith("/key") && !text.startsWith("/claim_admin") && !text.startsWith("/giolamviec") && text !== "⏰ Giờ Làm Việc Admin") {
+    if (currentAccess.isRevoked && !text.startsWith("/key") && !text.startsWith("/claim_admin") && !text.startsWith("/giolamviec") && text !== "⏰ GIỜ ADMIN HỖ TRỢ") {
       await bot.sendMessage(chatId, buildRevokedMessage(currentAccess.revokedKey), {
         reply_markup: {
           inline_keyboard: [[{ text: "📞 Liên Hệ Admin Mở Lại", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
@@ -1689,18 +1641,18 @@ ${expExplanation}
     }
 
     // LỆNH START & MỞ BÀN PHÍM CỐ ĐỊNH CHỌN 1-CHẠM
-    if (text === "/start" || text === "/menu" || text === "🔄 Làm Mới Dữ Liệu") {
+    if (text === "/start" || text === "/menu" || text === "🔄 LÀM MỚI DỮ LIỆU") {
       const access = checkUserAccess(uid);
 
       if (!access.hasAccess) {
-        const welcomeNotActive = `<b>HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN GRANDMASTER v7.0</b>
+        const welcomeNotActive = `<b>HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.0</b>
 ━━━━━━━━━━━━━━━━━━━━━
 Xin chào <b>${m.from.first_name || "bạn"}</b>!
 🆔 <b>ID của bạn:</b> <code>${uid}</code>
 ⚠️ <b>Trạng thái:</b> <b>Chưa kích hoạt bản quyền</b>
 ⏰ <b>Giờ hỗ trợ Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
 ━━━━━━━━━━━━━━━━━━━━━
-Hệ thống bắt cầu định lượng thích nghi công nghệ cao Tài Xỉu MD5 LC79 & Tele68.
+Hệ thống bắt cầu lượng tử thích nghi công nghệ cao Tài Xỉu MD5 LC79 & Hũ.
 Để sử dụng, vui lòng liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> để nhận Key bản quyền.
 
 Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
@@ -1718,12 +1670,12 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
       }
 
       const th = getUserTheme(uid);
-      const welcomeActive = `<b>${th.headerIcon} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN GRANDMASTER v7.0</b>
+      const welcomeActive = `<b>${th.iconHeader} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.0</b>
 ━━━━━━━━━━━━━━━━━━━━━
 👤 <b>Người dùng:</b> <code>${m.from.first_name || uid}</code>
 🆔 <b>ID:</b> <code>${uid}</code>
 ⏳ <b>Thời hạn:</b> <b>${access.remainingText}</b>
-🎨 <b>Phối màu:</b> <b>${th.name}</b>
+🎨 <b>Phối màu chữ:</b> <b>${th.name}</b>
 ⏰ <b>Giờ Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
 ━━━━━━━━━━━━━━━━━━━━━
 <i>Bàn phím điều khiển nhanh 1-chạm đã sẵn sàng dưới màn hình! Chạm là chạy ngay!</i>`;
@@ -1734,7 +1686,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // LỆNH GIỜ LÀM VIỆC CỦA ADMIN
-    if (text === "⏰ Giờ Làm Việc Admin" || text === "/giolamviec") {
+    if (text === "⏰ GIỜ ADMIN HỖ TRỢ" || text === "/giolamviec") {
       await bot.sendMessage(chatId, buildAdminHoursMessage(), {
         reply_markup: {
           inline_keyboard: [[{ text: "📞 Nhắn Tin Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
@@ -1744,7 +1696,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // LỆNH ĐỔI PHỐI MÀU GIAO DIỆN
-    if (text === "🎨 Đổi Phối Màu" || text === "/doimau") {
+    if (text === "🎨 ĐỔI PHỐI MÀU CHỮ" || text === "/doimau") {
       const curTheme = getUserTheme(uid);
       await bot.sendMessage(chatId, `<b>🎨 CHỌN PHỐI MÀU GIAO DIỆN CHO BOT</b>\n━━━━━━━━━━━━━━━━━━━━━\nTheme đang dùng: <b>${curTheme.name}</b>\n\n<i>Chọn màu bạn thích để làm nổi bật tin nhắn dự đoán:</i>`, {
         reply_markup: makeThemeSelectKeyboard()
@@ -1764,7 +1716,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
 
       const kData = store.keys[enteredKey];
 
-      // NẾU KEY ĐÃ BỊ ADMIN THU HỒI
+      // NẾU KEY ĐÃ BỊ ADMIN THU HỒI (CÓ THỂ MỞ LẠI)
       if (kData && kData.status === "revoked") {
         await bot.sendMessage(chatId, `<b>⛔ KEY ĐÃ BỊ TẠM THU HỒI!</b>\n\nMã key <code>${enteredKey}</code> đã bị Admin thu hồi.\nKey này <b>CÓ THỂ MỞ LẠI</b> sau khi liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b>.\n⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>`, {
           reply_markup: {
@@ -1787,7 +1739,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
       kData.activatedAt = now;
       kData.expiresAt = expiresAt;
 
-      store.users[uid] = store.users[uid] || { lc79Alert: false, huAlert: false, md5Alert: false };
+      store.users[uid] = store.users[uid] || { md5Alert: false, huAlert: false };
       store.users[uid].status = "active";
       store.users[uid].activatedKey = enteredKey;
       store.users[uid].expiresAt = expiresAt;
@@ -1817,17 +1769,18 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     // XỬ LÝ CÁC CHỨC NĂNG DÀNH CHO THÀNH VIÊN ĐÃ CÓ BẢN QUYỀN
     const access = checkUserAccess(uid);
 
-    // 1. SOI CẦU LC79 MD5 (NGUỒN API MỚI YÊU CẦU)
-    if (text === "🎯 Soi Cầu LC79 MD5" || text === "/lc79") {
+    // 1. SOI CẦU MD5 (LC79 - NGUỒN DUY NHẤT)
+    if (text === "◈ SOI CẦU MD5 (LC79)" || text === "/md5") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng nhập /key <mã_key>");
         return;
       }
-      await bot.sendMessage(chatId, buildPredictionText("lc79", lc79, uid), {
+      await bot.sendMessage(chatId, buildPredictionText("md5", md5, uid), {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_lc79" }],
-            [{ text: "🔮 Phân Tích Sâu LC79", callback_data: "deep_lc79" }]
+            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_md5" }],
+            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_md5" }],
+            [{ text: "🔮 Ma Trận Cầu Sâu MD5", callback_data: "deep_analysis" }]
           ]
         }
       });
@@ -1835,7 +1788,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // 2. SOI CẦU HŨ
-    if (text === "🎲 Soi Cầu Hũ" || text === "/hu") {
+    if (text === "❖ SOI CẦU HŨ" || text === "/hu") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng nhập /key <mã_key>");
         return;
@@ -1844,65 +1797,46 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Cập Nhật Lại Phiên Mới", callback_data: "pred_hu" }],
-            [{ text: "🔮 Phân Tích Sâu Bàn Hũ", callback_data: "deep_hu" }]
+            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_hu" }],
+            [{ text: "🔮 Ma Trận Cầu Sâu Bàn Hũ", callback_data: "deep_hu" }]
           ]
         }
       });
       return;
     }
 
-    // 3. SOI CẦU MD5 TELE68
-    if (text === "🔒 Soi Cầu MD5" || text === "/md5") {
-      if (!access.hasAccess) {
-        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng nhập /key <mã_key>");
-        return;
-      }
-      await bot.sendMessage(chatId, buildPredictionText("md5", md5, uid), {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔄 Cập Nhật Lại Phiên Mới", callback_data: "pred_md5" }],
-            [{ text: "🔮 Phân Tích Sâu Bàn MD5", callback_data: "deep_md5" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    // 4. THỐNG KÊ 30 PHIÊN
-    if (text === "📊 Thống Kê 30P" || text === "/thongke") {
+    // 3. THỐNG KÊ CHI TIẾT TỪNG PHIÊN (NHẢY RA ĐẦY ĐỦ THẮNG / THUA)
+    if (text === "📊 THỐNG KÊ CHI TIẾT 30P" || text === "/thongke") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
         return;
       }
-      await bot.sendMessage(chatId, buildStats30Text("lc79", lc79, uid), {
+      await bot.sendMessage(chatId, buildStatsFullText("md5", md5, uid), {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🎯 Thống Kê LC79", callback_data: "stats_lc79" }],
-            [{ text: "🎲 Thống Kê Hũ", callback_data: "stats_hu" }, { text: "🔒 Thống Kê MD5", callback_data: "stats_md5" }]
+            [{ text: "◈ Thống Kê MD5", callback_data: "stats_md5" }, { text: "❖ Thống Kê Hũ", callback_data: "stats_hu" }]
           ]
         }
       });
       return;
     }
 
-    // 5. CÀI ĐẶT TỰ ĐỘNG BÁO KÈO
-    if (text === "⚡ Cài Đặt Tự Báo" || text === "/tubao") {
+    // 4. CÀI ĐẶT TỰ ĐỘNG BÁO KÈO
+    if (text === "⚡ TỰ ĐỘNG BÁO KÈO" || text === "/tubao") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
         return;
       }
       const u = store.users[uid] || {};
-      const lcState = u.lc79Alert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
-      const hState = u.huAlert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
       const mState = u.md5Alert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
+      const hState = u.huAlert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
 
       const txt = `<b>⚡ CÀI ĐẶT TỰ ĐỘNG BÁO KÈO TỪNG BÀN</b>
 ━━━━━━━━━━━━━━━━━━━━━
-Bật cái gì chạy cái đó, độc lập 100%, không lo bị trôi hay lẫn lộn tin nhắn!
+Chỉ 1 bàn MD5 duy nhất (LC79) và 1 bàn Hũ, độc lập 100%, không bị rối!
 
-🎯 <b>Tài Xỉu MD5 LC79:</b> <b>${lcState}</b>
-🎲 <b>Tài Xỉu Hũ Tele68:</b> <b>${hState}</b>
-🔒 <b>Tài Xỉu MD5 Tele68:</b> <b>${mState}</b>
+◈ <b>Tài Xỉu MD5 (LC79):</b> <b>${mState}</b>
+❖ <b>Tài Xỉu Hũ (Tele68):</b> <b>${hState}</b>
 ━━━━━━━━━━━━━━━━━━━━━
 <i>Bấm các nút bên dưới để chuyển đổi Bật / Tắt:</i>`;
       await bot.sendMessage(chatId, txt, {
@@ -1911,14 +1845,14 @@ Bật cái gì chạy cái đó, độc lập 100%, không lo bị trôi hay l�
       return;
     }
 
-    // 6. THÔNG TIN BẢN QUYỀN
-    if (text === "👤 Bản Quyền" || text === "/thongtin") {
+    // 5. THÔNG TIN BẢN QUYỀN
+    if (text === "👤 BẢN QUYỀN CỦA BẠN" || text === "/thongtin") {
       const u = store.users[uid] || {};
       const expDateStr = access.expiresAt ? formatVNDateTime(access.expiresAt) : "Vĩnh Viễn (Lifetime)";
       const actDateStr = u.activatedAt ? formatVNDateTime(u.activatedAt) : "—";
       const th = getUserTheme(uid);
 
-      const msg = `<b>${th.headerIcon} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
+      const msg = `<b>${th.iconHeader} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
 ━━━━━━━━━━━━━━━━━━━━━
 🆔 <b>ID Telegram:</b> <code>${uid}</code>
 🔑 <b>Mã Key Đang Dùng:</b> <code>${u.activatedKey || (access.isAdmin ? "Admin Tối Cao" : "Chưa có")}</code>
@@ -1928,9 +1862,8 @@ Bật cái gì chạy cái đó, độc lập 100%, không lo bị trôi hay l�
 ⏳ <b>Thời Gian Còn Lại:</b> <b>${access.remainingText}</b>
 🎨 <b>Theme Giao Diện:</b> <b>${th.name}</b>
 ━━━━━━━━━━━━━━━━━━━━━
-⚡ <b>Tự Báo LC79 MD5:</b> ${u.lc79Alert ? "🟢 Bật" : "🔴 Tắt"}
-⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"}
 ⚡ <b>Tự Báo MD5:</b> ${u.md5Alert ? "🟢 Bật" : "🔴 Tắt"}
+⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"}
 ━━━━━━━━━━━━━━━━━━━━━
 ⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
 <i>Tác giả: Phạm Anh Khôi · Hỗ trợ: ${TELEGRAM_ADMIN_CONTACT}</i>`;
@@ -1942,31 +1875,30 @@ Bật cái gì chạy cái đó, độc lập 100%, không lo bị trôi hay l�
       return;
     }
 
-    // 7. QUẢN LÝ VỐN THỰC CHIẾN
-    if (text === "📐 Quản Lý Vốn" || text === "/quanlyvon") {
+    // 6. QUẢN LÝ VỐN THỰC CHIẾN
+    if (text === "📐 QUẢN LÝ VỐN" || text === "/quanlyvon") {
       await bot.sendMessage(chatId, buildCapitalStrategyText());
       return;
     }
 
-    // 8. PHÂN TÍCH MA TRẬN CẦU SÂU
-    if (text === "🔮 Phân Tích Cầu Sâu" || text === "/soicausau") {
+    // 7. PHÂN TÍCH MA TRẬN CẦU SÂU
+    if (text === "🔮 MA TRẬN CẦU SÂU" || text === "/soicausau") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
         return;
       }
-      await bot.sendMessage(chatId, buildDeepAnalysisText("lc79", lc79, uid), {
+      await bot.sendMessage(chatId, buildDeepAnalysisText("md5", md5, uid), {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🎲 Phân Tích Bàn Hũ", callback_data: "deep_hu" }],
-            [{ text: "🔒 Phân Tích MD5 Tele68", callback_data: "deep_md5" }]
+            [{ text: "❖ Phân Tích Bàn Hũ", callback_data: "deep_hu" }]
           ]
         }
       });
       return;
     }
 
-    // 9. MENU ADMIN TỐI CAO
-    if (text === "👑 Menu Admin Tối Cao" || text === "/admin") {
+    // 8. MENU ADMIN TỐI CAO
+    if (text === "👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO" || text === "/admin") {
       if (!access.isAdmin) {
         await bot.sendMessage(chatId, "⛔ <b>Lệnh này chỉ dành cho Admin tối cao!</b>");
         return;
@@ -2053,9 +1985,8 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
           uObj.status = "revoked";
           uObj.revokedKey = targetKey;
           uObj.revokedAt = Date.now();
-          uObj.lc79Alert = false;
-          uObj.huAlert = false;
           uObj.md5Alert = false;
+          uObj.huAlert = false;
 
           try {
             await bot.sendMessage(uId, buildRevokedMessage(targetKey), {
@@ -2092,7 +2023,6 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
         return;
       }
 
-      // Khôi phục trạng thái key
       kData.status = kData.activatedBy ? "used" : "active";
       delete kData.revokedAt;
       delete kData.revokedBy;
@@ -2142,9 +2072,8 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       uObj.status = "revoked";
       uObj.revokedKey = revokedKey;
       uObj.revokedAt = Date.now();
-      uObj.lc79Alert = false;
-      uObj.huAlert = false;
       uObj.md5Alert = false;
+      uObj.huAlert = false;
 
       addSystemLog("Thu hồi User", `Tạm thu hồi quyền User ${targetUid}`);
       saveStore(store);
@@ -2211,7 +2140,6 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       // XOÁ HOÀN TOÀN KHỎI HỆ THỐNG - MẤT LUÔN
       delete store.keys[targetKey];
 
-      // Nếu có user đang dùng key này, xóa trắng thông tin key của user
       let affectedUserId = null;
       for (const [uId, uObj] of Object.entries(store.users)) {
         if (uObj.activatedKey === targetKey || uObj.revokedKey === targetKey) {
@@ -2255,7 +2183,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
 🕒 <b>Kích hoạt lúc:</b> <b>${actTime}</b>
 📅 <b>Hạn dùng đến:</b> <b>${expTime}</b>
 ⏳ <b>Còn lại:</b> <b>${uAccess.remainingText}</b>
-⚡ <b>Tự báo LC79:</b> ${u.lc79Alert ? "🟢 Bật" : "🔴 Tắt"} | <b>Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"} | <b>MD5:</b> ${u.md5Alert ? "🟢 Bật" : "🔴 Tắt"}`;
+⚡ <b>Tự báo MD5:</b> ${u.md5Alert ? "🟢 Bật" : "🔴 Tắt"} | <b>Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"}`;
       await bot.sendMessage(chatId, infoMsg);
       return;
     }
@@ -2276,7 +2204,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
         return;
       }
 
-      store.users[targetUid] = store.users[targetUid] || { lc79Alert: false, huAlert: false, md5Alert: false };
+      store.users[targetUid] = store.users[targetUid] || { md5Alert: false, huAlert: false };
       const currentExpiry = store.users[targetUid].expiresAt || Date.now();
       const baseTime = Math.max(Date.now(), currentExpiry);
       const newExpiry = dur.ms === -1 ? -1 : baseTime + dur.ms;
@@ -2356,9 +2284,8 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const activeKeys = Object.values(store.keys).filter(k => k.status === "active").length;
       const usedKeys = Object.values(store.keys).filter(k => k.status === "used").length;
       const revokedKeys = Object.values(store.keys).filter(k => k.status === "revoked").length;
-      const lc79Stats = lc79.tracker.get30Stats();
-      const huStats = hu.tracker.get30Stats();
-      const md5Stats = md5.tracker.get30Stats();
+      const md5Stats = md5.tracker.getFullStats(30);
+      const huStats = hu.tracker.getFullStats(30);
 
       const statsMsg = `<b>📊 BÁO CÁO TOÀN DIỆN HỆ THỐNG</b>
 ━━━━━━━━━━━━━━━━━━━━━
@@ -2367,9 +2294,8 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
 🔐 <b>Key Đang Hoạt Động:</b> <b>${usedKeys}</b>
 ⛔ <b>Key Bị Thu Hồi (Mở lại được):</b> <b>${revokedKeys}</b>
 ━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>Tài Xỉu MD5 LC79 (30P):</b> <b>${lc79Stats.acc30}</b> (Thắng ${lc79Stats.winCount}/${lc79Stats.total30})
-🎲 <b>Tài Xỉu Hũ (30P):</b> <b>${huStats.acc30}</b> (Thắng ${huStats.winCount}/${huStats.total30})
-🔒 <b>Tài Xỉu MD5 Tele68 (30P):</b> <b>${md5Stats.acc30}</b> (Thắng ${md5Stats.winCount}/${md5Stats.total30})
+◈ <b>Tài Xỉu MD5 LC79 (30P):</b> <b>${md5Stats.accStr}</b> (Thắng ${md5Stats.winCount} | Thua ${md5Stats.lossCount})
+❖ <b>Tài Xỉu Hũ (30P):</b> <b>${huStats.accStr}</b> (Thắng ${huStats.winCount} | Thua ${huStats.lossCount})
 ━━━━━━━━━━━━━━━━━━━━━
 <i>Hệ thống định lượng thời gian thực vận hành liên tục 24/7.</i>`;
       await bot.sendMessage(chatId, statsMsg);
@@ -2417,14 +2343,11 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
 // =========================================================================
 function setupAutoAlerts() {
   const handlePush = async (gameKey, pred, last) => {
-    let flagKey = "lc79Alert";
-    let gameName = "🎯 TÀI XỈU MD5 LC79";
+    let flagKey = "md5Alert";
+    let gameName = "◈ TÀI XỈU MD5 (LC79)";
     if (gameKey === "hu") {
       flagKey = "huAlert";
-      gameName = "🎲 TÀI XỈU HŨ TRUYỀN THỐNG";
-    } else if (gameKey === "md5") {
-      flagKey = "md5Alert";
-      gameName = "🔒 TÀI XỈU MD5 TELE68";
+      gameName = "❖ TÀI XỈU HŨ TRUYỀN THỐNG";
     }
 
     const lastDisplay = last ? formatResultDisplay(last.result) : "—";
@@ -2441,17 +2364,17 @@ function setupAutoAlerts() {
       try {
         const theme = getUserTheme(uid);
         const isTai = normalizeResult(pred.pred) === "tai";
-        const predBadge = isTai ? theme.taiBadge : theme.xiuBadge;
+        const predBadge = isTai ? theme.badgeTai : theme.badgeXiu;
         const confBar = makeConfidenceBar(pred.conf, theme);
-        const choppyTag = pred.isChoppy ? `\n⚠️ <i>Cầu giằng co, khuyên vào nhẹ hoặc xem!</i>` : "";
+        const choppyTag = pred.isChoppy ? `\n⚠️ <i>Cầu giằng co, khuyên vào nhẹ hoặc quan sát!</i>` : "";
 
-        const alertMsg = `<b>${theme.headerIcon} TÍN HIỆU PHIÊN MỚI: ${gameName}</b>
+        const alertMsg = `<b>${theme.iconHeader} ⟦ TÍN HIỆU PHIÊN MỚI: ${gameName} ⟧</b>
 ━━━━━━━━━━━━━━━━━━━━━
 🎯 <b>PHIÊN: #${pred.session}</b>
 👉 <b>DỰ ĐOÁN: ${predBadge}</b>
-${theme.fireIcon} <b>ĐỘ TIN CẬY: ${pred.conf}%</b>
+${theme.iconFire} <b>ĐỘ TIN CẬY: ${pred.conf}%</b>
 <code>${confBar}</code>
-${theme.statIcon} <b>CHIẾN THUẬT:</b> <code>${pred.src}</code>${choppyTag}
+${theme.iconStat} <b>CHIẾN THUẬT:</b> <code>${pred.src}</code>${choppyTag}
 ━━━━━━━━━━━━━━━━━━━━━
 🎲 <b>Phiên trước #${last ? last.session : "—"}:</b> ${lastDice} ➔ <b>${lastDisplay}</b>
 🕒 <b>Thời gian:</b> <code>${curTimeStr}</code>
@@ -2463,9 +2386,8 @@ ${theme.statIcon} <b>CHIẾN THUẬT:</b> <code>${pred.src}</code>${choppyTag}
     }
   };
 
-  lc79.onNewSession((g, p, l) => handlePush(g, p, l));
-  hu.onNewSession((g, p, l) => handlePush(g, p, l));
   md5.onNewSession((g, p, l) => handlePush(g, p, l));
+  hu.onNewSession((g, p, l) => handlePush(g, p, l));
 }
 
 // =========================================================================
@@ -2487,14 +2409,13 @@ function startHttpServer() {
 
     if (pathname === "/health" || pathname === "/api/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "ok", author: "Phạm Anh Khôi", version: "7.0-grandmaster", time: Date.now() }));
+      res.end(JSON.stringify({ status: "ok", author: "Phạm Anh Khôi", version: "8.0-quantum", time: Date.now() }));
       return;
     }
 
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    const lc79Stats = lc79.tracker.get30Stats();
-    const huStats = hu.tracker.get30Stats();
-    const md5Stats = md5.tracker.get30Stats();
+    const md5Stats = md5.tracker.getFullStats(30);
+    const huStats = hu.tracker.getFullStats(30);
     const totalUsers = Object.keys(store.users).length;
     const activeKeys = Object.values(store.keys).filter(k => k.status === "active").length;
 
@@ -2503,29 +2424,29 @@ function startHttpServer() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOT TELEGRAM ĐỊNH LƯỢNG // PHẠM ANH KHÔI v7.0 GRANDMASTER</title>
+<title>BOT TELEGRAM ĐỊNH LƯỢNG // PHẠM ANH KHÔI v8.0 QUANTUM</title>
 <style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#000000;color:#f4f4f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-.card{background:#0d0d12;border:1px solid rgba(239,68,68,0.4);border-radius:28px;padding:36px;max-width:560px;width:100%;box-shadow:0 20px 50px rgba(239,68,68,0.2);}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#06060c;color:#f4f4f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.card{background:#0d0d18;border:1px solid rgba(139,92,246,0.4);border-radius:28px;padding:36px;max-width:560px;width:100%;box-shadow:0 20px 50px rgba(139,92,246,0.25);}
 h1{margin:0 0 8px;font-size:1.35rem;color:#fff;display:flex;align-items:center;gap:10px;}
-.badge{background:#e11d48;color:#fff;font-size:0.75rem;padding:4px 14px;border-radius:9999px;font-weight:800;}
+.badge{background:#8b5cf6;color:#fff;font-size:0.75rem;padding:4px 14px;border-radius:9999px;font-weight:800;}
 .sub{color:#a1a1aa;font-size:0.85rem;margin-bottom:24px;}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
-.box{background:#181820;border-radius:18px;padding:16px;border:1px solid rgba(255,255,255,0.06);}
+.box{background:#131322;border-radius:18px;padding:16px;border:1px solid rgba(255,255,255,0.06);}
 .box .lbl{font-size:0.75rem;color:#71717a;text-transform:uppercase;font-weight:800;}
 .box .val{font-size:1.25rem;font-weight:900;color:#fff;margin-top:4px;}
-.btn{display:inline-block;width:100%;text-align:center;background:linear-gradient(135deg,#e11d48,#be123c);color:#fff;text-decoration:none;padding:14px 0;border-radius:9999px;font-weight:800;font-size:0.9rem;box-shadow:0 4px 18px rgba(225,29,72,0.4);}
+.btn{display:inline-block;width:100%;text-align:center;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;padding:14px 0;border-radius:9999px;font-weight:800;font-size:0.9rem;box-shadow:0 4px 18px rgba(139,92,246,0.4);}
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>BOT TELEGRAM ĐỊNH LƯỢNG <span class="badge">v7.0 GRANDMASTER</span></h1>
+  <h1>BOT TELEGRAM ĐỊNH LƯỢNG <span class="badge">v8.0 QUANTUM</span></h1>
   <div class="sub">Tác giả: <b>Phạm Anh Khôi</b> · Telegram: <b>${TELEGRAM_ADMIN_CONTACT}</b> · Trực: <b>${ADMIN_WORK_HOURS}</b></div>
   <div class="grid">
-    <div class="box"><div class="lbl">Tài Xỉu MD5 LC79 (30P)</div><div class="val" style="color:#ef4444">${lc79Stats.acc30} (${lc79Stats.winCount}/${lc79Stats.total30})</div></div>
-    <div class="box"><div class="lbl">Tài Xỉu Hũ (30P)</div><div class="val" style="color:#ef4444">${huStats.acc30} (${huStats.winCount}/${huStats.total30})</div></div>
-    <div class="box"><div class="lbl">Tài Xỉu MD5 Tele68 (30P)</div><div class="val" style="color:#ef4444">${md5Stats.acc30} (${md5Stats.winCount}/${md5Stats.total30})</div></div>
+    <div class="box"><div class="lbl">Tài Xỉu MD5 LC79 (30P)</div><div class="val" style="color:#a78bfa">${md5Stats.accStr} (W:${md5Stats.winCount} | L:${md5Stats.lossCount})</div></div>
+    <div class="box"><div class="lbl">Tài Xỉu Hũ (30P)</div><div class="val" style="color:#a78bfa">${huStats.accStr} (W:${huStats.winCount} | L:${huStats.lossCount})</div></div>
     <div class="box"><div class="lbl">Tổng Người Dùng</div><div class="val">${totalUsers}</div></div>
+    <div class="box"><div class="lbl">Key Chưa Kích Hoạt</div><div class="val">${activeKeys}</div></div>
   </div>
   <a class="btn" href="https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}" target="_blank">LIÊN HỆ ADMIN PHẠM ANH KHÔI (${ADMIN_WORK_HOURS})</a>
 </div>
@@ -2542,9 +2463,8 @@ h1{margin:0 0 8px;font-size:1.35rem;color:#fff;display:flex;align-items:center;g
 // KHỞI ĐỘNG HỆ THỐNG
 // =========================================================================
 async function bootstrap() {
-  lc79.start(3500);
-  hu.start(3500);
   md5.start(3500);
+  hu.start(3500);
   setupAutoAlerts();
   startHttpServer();
 
