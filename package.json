@@ -1,0 +1,16 @@
+{
+  "name": "bot-tele-dinh-luong-anh-khoi",
+  "version": "5.0.0",
+  "description": "BOT TELEGRAM ĐỊNH LƯỢNG THỰC CHIẾN TÀI XỈU & MD5 - TÁC GIẢ: PHẠM ANH KHÔI",
+  "type": "module",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Phạm Anh Khôi (@anhkhoi_xabc)",
+  "license": "MIT"
+}
