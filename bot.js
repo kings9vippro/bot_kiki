@@ -17,7 +17,7 @@ const MASTER_KEY = "anhkhoi_xabc2102";
 const TELEGRAM_ADMIN_CONTACT = "@anhkhoi_xabc";
 const ADMIN_WORK_HOURS = "12h00 trưa đến 21h00 - 22h00 tối hàng ngày";
 
-// API NGUỒN DỮ LIỆU TÀI XỈU THỰC CHIẾN - CHỈ GIỮ DUY NHẤT 1 API MD5 (LC79) VÀ 1 BÀN HŨ
+// API NGUỒN DỮ LIỆU TÀI XỈU THỰC CHIẾN - DUY NHẤT 1 API MD5 (LC79) VÀ 1 BÀN HŨ
 const API_MD5_LC79 = "https://lc79-taixiumd5-dulieu.onrender.com/data";
 const API_HU = "https://wtx.tele68.com/v1/tx/lite-sessions?cp=R&cl=R&pf=web&at=83991213bfd4c554dc94bcd98979bdc5";
 
@@ -39,7 +39,6 @@ function loadStore() {
         keys: data.keys || {},
         users: data.users || {},
         logs: Array.isArray(data.logs) ? data.logs : [],
-        systemSettings: data.systemSettings || { minConfidence: 75, targetWinRate: 85, defaultTheme: "random" },
         md5: { activePred: data.md5?.activePred || null, outcomes: data.md5?.outcomes || [], history: data.md5?.history || [] },
         hu: { activePred: data.hu?.activePred || null, outcomes: data.hu?.outcomes || [], history: data.hu?.history || [] }
       };
@@ -50,7 +49,6 @@ function loadStore() {
     keys: {},
     users: {},
     logs: [],
-    systemSettings: { minConfidence: 75, targetWinRate: 85, defaultTheme: "random" },
     md5: { activePred: null, outcomes: [], history: [] },
     hu: { activePred: null, outcomes: [], history: [] }
   };
@@ -78,7 +76,7 @@ function addSystemLog(action, detail) {
 // HÀM ĐỊNH DẠNG THỜI GIAN VIỆT NAM (UTC+7) & CHUẨN HÓA KẾT QUẢ
 // =========================================================================
 function formatVNDateTime(timestamp) {
-  if (!timestamp || timestamp === -1) return "Vĩnh Viễn (Không thời hạn)";
+  if (!timestamp || timestamp === -1) return "Vĩnh Viễn";
   const d = new Date(timestamp);
   return new Intl.DateTimeFormat("vi-VN", {
     timeZone: "Asia/Ho_Chi_Minh",
@@ -100,13 +98,11 @@ function formatRemainingDetail(expiresAt) {
   const days = Math.floor(diff / (24 * 3600 * 1000));
   const hours = Math.floor((diff % (24 * 3600 * 1000)) / (3600 * 1000));
   const minutes = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-  const seconds = Math.floor((diff % (60 * 1000)) / 1000);
 
   const parts = [];
-  if (days > 0) parts.push(`${days} ngày`);
-  if (hours > 0) parts.push(`${hours} giờ`);
-  if (minutes > 0) parts.push(`${minutes} phút`);
-  if (parts.length === 0 || seconds > 0) parts.push(`${seconds} giây`);
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || parts.length === 0) parts.push(`${minutes}p`);
   return parts.join(" ");
 }
 
@@ -142,108 +138,23 @@ function generateDiceForTotal(total) {
 }
 
 // =========================================================================
-// HỆ THỐNG GIAO DIỆN HIỆN ĐẠI SIÊU CẤP & BỘ PHỐI MÀU NGHỆ THUẬT FUTURISTIC
-// Tuyệt đối không dùng icon thông thường, sử dụng Glyphs & Hologram tương lai
-// =========================================================================
-const CYBER_THEMES = {
-  violet: {
-    id: "violet",
-    name: "🔮 Cyber Violet Hologram (Tím Hoàng Gia - Hồng Neon)",
-    badgeTai: "🟣 ⟦ ◈ TÀI ◈ ⟧",
-    badgeXiu: "🌸 ⟦ ⬡ XỈU ⬡ ⟧",
-    iconHeader: "🔮",
-    iconFire: "⚡︎",
-    iconStat: "⟡",
-    iconCard: "❖",
-    barFill: "🟪",
-    barEmpty: "⬜"
-  },
-  sapphire: {
-    id: "sapphire",
-    name: "💎 Hyperdrive Sapphire (Lam Ngọc Điện Biên - Bạc)",
-    badgeTai: "🔵 ⟦ ◈ TÀI ◈ ⟧",
-    badgeXiu: "⚪ ⟦ ⬡ XỈU ⬡ ⟧",
-    iconHeader: "💎",
-    iconFire: "⚡︎",
-    iconStat: "💠",
-    iconCard: "◈",
-    barFill: "🟦",
-    barEmpty: "⬜"
-  },
-  emerald: {
-    id: "emerald",
-    name: "❇️ Quantum Matrix Emerald (Ngọc Lục Bảo - Laser Xanh)",
-    badgeTai: "🟢 ⟦ ◈ TÀI ◈ ⟧",
-    badgeXiu: "⚫ ⟦ ⬡ XỈU ⬡ ⟧",
-    iconHeader: "❇️",
-    iconFire: "🔋",
-    iconStat: "⬢",
-    iconCard: "⬡",
-    barFill: "🟩",
-    barEmpty: "⬛"
-  },
-  solar: {
-    id: "solar",
-    name: "👑 Solar Plasma Gold (Hoàng Kim Thái Dương - Cam Lửa)",
-    badgeTai: "🟡 ⟦ ◈ TÀI ◈ ⟧",
-    badgeXiu: "🟠 ⟦ ⬡ XỈU ⬡ ⟧",
-    iconHeader: "👑",
-    iconFire: "💥",
-    iconStat: "🏆",
-    iconCard: "✦",
-    barFill: "🟨",
-    barEmpty: "⬜"
-  },
-  crimson: {
-    id: "crimson",
-    name: "🩸 Crimson Mecha (Huyết Hắc Thạch Cơ Khí)",
-    badgeTai: "🔴 ⟦ ◈ TÀI ◈ ⟧",
-    badgeXiu: "⚫ ⟦ ⬡ XỈU ⬡ ⟧",
-    iconHeader: "🩸",
-    iconFire: "⚡︎",
-    iconStat: "◤◢",
-    iconCard: "✦",
-    barFill: "🟥",
-    barEmpty: "⬛"
-  }
-};
-
-const THEME_KEYS = ["violet", "sapphire", "emerald", "solar", "crimson"];
-
-function getUserTheme(uid) {
-  const u = store.users[String(uid)] || {};
-  let userChoice = u.theme || store.systemSettings.defaultTheme || "random";
-  if (userChoice === "random") {
-    const randomIndex = Math.floor(Math.random() * THEME_KEYS.length);
-    return CYBER_THEMES[THEME_KEYS[randomIndex]];
-  }
-  return CYBER_THEMES[userChoice] || CYBER_THEMES.violet;
-}
-
-function makeConfidenceBar(conf, theme) {
-  const totalBlocks = 10;
-  const filledBlocks = Math.min(10, Math.max(1, Math.round(conf / 10)));
-  const emptyBlocks = totalBlocks - filledBlocks;
-  return theme.barFill.repeat(filledBlocks) + theme.barEmpty.repeat(emptyBlocks);
-}
-
-// =========================================================================
-// THUẬT TOÁN ĐỊNH LƯỢNG LƯỢNG TỬ SIÊU CẤP V8.5 VIP SUPREME
+// THUẬT TOÁN ĐỊNH LƯỢNG LƯỢNG TỬ TOÀN DIỆN V9.0 PRO (MASTER QUANT AI)
 // Tác giả: Phạm Anh Khôi (@anhkhoi_xabc)
-// Tích hợp 12 mô hình lượng tử & học máy tăng cường thích nghi
+// Tích hợp 12 mô hình: Z-Score Gauss, EWMA MACD, Markov K2/K3, 15 Mẫu Hình Cầu,
+// Mật độ xúc xắc biên, Học tăng cường Online Q-Weights & Bẻ cầu phòng thủ.
 // =========================================================================
-class QuantumVipEngine {
+class MasterQuantEngine {
   constructor() {
     this.weights = {
-      streak: 5.8,
-      harmonic: 5.0,
-      markov2: 4.5,
-      markov3: 4.2,
-      gaussianZ: 4.8,
-      rsi14: 4.2,
-      ewmaTrend: 4.4,
-      diceMarginal: 3.8,
-      tripleShock: 4.8
+      streak: 6.2,
+      harmonic: 5.5,
+      markov2: 4.8,
+      markov3: 4.5,
+      gaussianZ: 5.2,
+      rsi14: 4.6,
+      ewmaTrend: 4.8,
+      diceMarginal: 4.2,
+      tripleShock: 5.0
     };
   }
 
@@ -252,7 +163,7 @@ class QuantumVipEngine {
     const factor = lastOk ? 1.08 : 0.88;
     for (const k of Object.keys(this.weights)) {
       if (strategyType.toLowerCase().includes(k.toLowerCase())) {
-        this.weights[k] = Math.max(1.8, Math.min(10.0, this.weights[k] * factor));
+        this.weights[k] = Math.max(2.0, Math.min(12.0, this.weights[k] * factor));
       }
     }
   }
@@ -272,7 +183,7 @@ class QuantumVipEngine {
     const reasonsT = [];
     const reasonsX = [];
 
-    // 1. Phân tích chuỗi bệt động lượng (Streak Acceleration & Saturation)
+    // 1. Phân tích chuỗi bệt động lượng (Streak Momentum & Poisson Saturation)
     let s = 1;
     for (let i = len - 2; i >= 0; i--) {
       if (tx[i] === last) s++; else break;
@@ -280,44 +191,44 @@ class QuantumVipEngine {
 
     const wStreak = this.weights.streak;
     if (s >= 3 && s <= 5) {
-      if (last === "T") { scoreT += wStreak * 1.08; reasonsT.push(`Đu bệt gia tốc Tài (${s} tay)`); }
-      else { scoreX += wStreak * 1.08; reasonsX.push(`Đu bệt gia tốc Xỉu (${s} tay)`); }
+      if (last === "T") { scoreT += wStreak * 1.1; reasonsT.push(`Đu bệt gia tốc (${s} tay)`); }
+      else { scoreX += wStreak * 1.1; reasonsX.push(`Đu bệt gia tốc (${s} tay)`); }
     } else if (s >= 6 && s <= 8) {
-      if (last === "T") { scoreT += wStreak * 1.28; reasonsT.push(`Bám đà bệt sâu Tài (${s} tay)`); }
-      else { scoreX += wStreak * 1.28; reasonsX.push(`Bám đà bệt sâu Xỉu (${s} tay)`); }
+      if (last === "T") { scoreT += wStreak * 1.3; reasonsT.push(`Bám đà bệt sâu (${s} tay)`); }
+      else { scoreX += wStreak * 1.3; reasonsX.push(`Bám đà bệt sâu (${s} tay)`); }
     } else if (s >= 9) {
-      // Điểm bão hòa chuỗi phân rã Poisson -> Lực kéo bẻ cầu đảo chiều cực đại
-      if (last === "T") { scoreX += wStreak * 1.5; reasonsX.push(`Lực kéo bẻ bệt bão hòa (${s} tay)`); }
-      else { scoreT += wStreak * 1.5; reasonsT.push(`Lực kéo bẻ bệt bão hòa (${s} tay)`); }
+      // Ngưỡng bão hòa cực đại -> Lực bẻ đảo chiều
+      if (last === "T") { scoreX += wStreak * 1.55; reasonsX.push(`Bẻ bệt bão hòa (${s} tay)`); }
+      else { scoreT += wStreak * 1.55; reasonsT.push(`Bẻ bệt bão hòa (${s} tay)`); }
     } else if (s === 1) {
       const last4 = tx.slice(-4);
       if (last4.length === 4 && last4[0] !== last4[1] && last4[1] !== last4[2] && last4[2] !== last4[3]) {
-        if (last === "T") { scoreX += this.weights.harmonic * 1.2; reasonsX.push("Sóng điều hòa Ping-Pong 1-1"); }
-        else { scoreT += this.weights.harmonic * 1.2; reasonsT.push("Sóng điều hòa Ping-Pong 1-1"); }
+        if (last === "T") { scoreX += this.weights.harmonic * 1.25; reasonsX.push("Sóng đảo Ping-Pong 1-1"); }
+        else { scoreT += this.weights.harmonic * 1.25; reasonsT.push("Sóng đảo Ping-Pong 1-1"); }
       }
     } else if (s === 2) {
       const last4 = tx.slice(-4);
       if (last4.length === 4 && last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-        if (last === "T") { scoreX += this.weights.harmonic; reasonsX.push("Nhịp song hành đôi 2-2"); }
-        else { scoreT += this.weights.harmonic; reasonsT.push("Nhịp song hành đôi 2-2"); }
+        if (last === "T") { scoreX += this.weights.harmonic; reasonsX.push("Cầu song hành đôi 2-2"); }
+        else { scoreT += this.weights.harmonic; reasonsT.push("Cầu song hành đôi 2-2"); }
       }
     }
 
-    // 2. Hình thái cấu trúc cầu kẹp và bậc thang lượng tử
+    // 2. Hình thái cầu kẹp và bậc thang lượng tử
     const wHarmonic = this.weights.harmonic;
     const seq5 = tx.slice(-5).join("");
     if (seq5 === "TTXTT" || seq5 === "XXTXX") {
-      if (last === "T") { scoreX += wHarmonic * 1.25; reasonsX.push("Thoát kẹp đối xứng 2-1-2"); }
-      else { scoreT += wHarmonic * 1.25; reasonsT.push("Thoát kẹp đối xứng 2-1-2"); }
+      if (last === "T") { scoreX += wHarmonic * 1.3; reasonsX.push("Thoát kẹp đối xứng 2-1-2"); }
+      else { scoreT += wHarmonic * 1.3; reasonsT.push("Thoát kẹp đối xứng 2-1-2"); }
     }
     const seq6 = tx.slice(-6).join("");
     if (seq6 === "TTTXXT" || seq6 === "XXXTTX") {
-      if (last === "T") { scoreT += wHarmonic * 1.1; reasonsT.push("Hãm quán tính bậc 3-2-1"); }
-      else { scoreX += wHarmonic * 1.1; reasonsX.push("Hãm quán tính bậc 3-2-1"); }
+      if (last === "T") { scoreT += wHarmonic * 1.15; reasonsT.push("Hãm quán tính 3-2-1"); }
+      else { scoreX += wHarmonic * 1.15; reasonsX.push("Hãm quán tính 3-2-1"); }
     }
     if (seq6 === "TXXTTT" || seq6 === "XTTXXX") {
-      if (last === "T") { scoreX += wHarmonic * 1.1; reasonsX.push("Tiến bậc thang 1-2-3"); }
-      else { scoreT += wHarmonic * 1.1; reasonsT.push("Tiến bậc thang 1-2-3"); }
+      if (last === "T") { scoreX += wHarmonic * 1.15; reasonsX.push("Tiến bậc thang 1-2-3"); }
+      else { scoreT += wHarmonic * 1.15; reasonsT.push("Tiến bậc thang 1-2-3"); }
     }
 
     // 3. Ma trận chuyển trạng thái Markov bậc 2 & 3
@@ -332,8 +243,8 @@ class QuantumVipEngine {
       }
       const totalTrans = countT + countX;
       if (totalTrans >= 2) {
-        if (countT > countX) { scoreT += wM2 + (countT / totalTrans); reasonsT.push("Ma trận Markov bậc 2"); }
-        else if (countX > countT) { scoreX += wM2 + (countX / totalTrans); reasonsX.push("Ma trận Markov bậc 2"); }
+        if (countT > countX) { scoreT += wM2 + (countT / totalTrans); reasonsT.push("Chuyển trạng thái Markov K2"); }
+        else if (countX > countT) { scoreX += wM2 + (countX / totalTrans); reasonsX.push("Chuyển trạng thái Markov K2"); }
       }
     }
 
@@ -343,13 +254,13 @@ class QuantumVipEngine {
     const zScore = (avgScore - 10.5) / (2.96 / Math.sqrt(7));
     const wGaussianZ = this.weights.gaussianZ;
 
-    if (zScore >= 1.35) {
-      scoreX += wGaussianZ + Math.abs(zScore) * 1.15; reasonsX.push(`Lực kéo Z-Score cao (${avgScore.toFixed(1)})`);
-    } else if (zScore <= -1.35) {
-      scoreT += wGaussianZ + Math.abs(zScore) * 1.15; reasonsT.push(`Lực kéo Z-Score thấp (${avgScore.toFixed(1)})`);
+    if (zScore >= 1.3) {
+      scoreX += wGaussianZ + Math.abs(zScore) * 1.2; reasonsX.push(`Lực kéo Z-Score cao (${avgScore.toFixed(1)})`);
+    } else if (zScore <= -1.3) {
+      scoreT += wGaussianZ + Math.abs(zScore) * 1.2; reasonsT.push(`Lực kéo Z-Score thấp (${avgScore.toFixed(1)})`);
     }
 
-    // 5. Đường trung bình động lũy thừa EWMA phân kỳ (EWMA Crossover)
+    // 5. Đường trung bình động lũy thừa EWMA phân kỳ (EWMA MACD)
     let ewmaFast = totals[0];
     let ewmaSlow = totals[0];
     for (let i = 1; i < len; i++) {
@@ -357,9 +268,9 @@ class QuantumVipEngine {
       ewmaSlow = totals[i] * 0.15 + ewmaSlow * 0.85;
     }
     const ewmaDiff = ewmaFast - ewmaSlow;
-    if (ewmaDiff >= 0.8) {
+    if (ewmaDiff >= 0.75) {
       scoreT += this.weights.ewmaTrend; reasonsT.push("Động lượng EWMA tăng mạnh");
-    } else if (ewmaDiff <= -0.8) {
+    } else if (ewmaDiff <= -0.75) {
       scoreX += this.weights.ewmaTrend; reasonsX.push("Động lượng EWMA giảm mạnh");
     }
 
@@ -371,13 +282,13 @@ class QuantumVipEngine {
     }
     const rs = losses === 0 ? 100 : gains / losses;
     const rsi = 100 - (100 / (1 + rs));
-    if (rsi >= 66) {
+    if (rsi >= 65) {
       scoreX += this.weights.rsi14; reasonsX.push("RSI quá mua tổng điểm");
-    } else if (rsi <= 34) {
+    } else if (rsi <= 35) {
       scoreT += this.weights.rsi14; reasonsT.push("RSI quá bán tổng điểm");
     }
 
-    // 7. Tần suất mặt xúc xắc cục bộ (Dice Marginal Density)
+    // 7. Tần suất mật độ mặt xúc xắc biên (Dice Marginal Density)
     let lowDice = 0, highDice = 0;
     const recentDice = dice.slice(-10);
     recentDice.forEach(arr => {
@@ -385,10 +296,10 @@ class QuantumVipEngine {
         arr.forEach(d => { if (d <= 3) lowDice++; else if (d >= 4) highDice++; });
       }
     });
-    if (lowDice >= 20) { scoreT += this.weights.diceMarginal; reasonsT.push("Bù trừ mật độ xúc xắc thấp"); }
-    else if (highDice >= 20) { scoreX += this.weights.diceMarginal; reasonsX.push("Bù trừ mật độ xúc xắc cao"); }
+    if (lowDice >= 19) { scoreT += this.weights.diceMarginal; reasonsT.push("Bù trừ mật độ xúc xắc thấp"); }
+    else if (highDice >= 19) { scoreX += this.weights.diceMarginal; reasonsX.push("Bù trừ mật độ xúc xắc cao"); }
 
-    // 8. Sóng phản xạ sau Bão xúc xắc & Tam hoa
+    // 8. Sóng phản xung sau Bão xúc xắc
     const lastDice = dice[len - 1];
     if (Array.isArray(lastDice) && lastDice.length === 3) {
       if (lastDice[0] === lastDice[1] && lastDice[1] === lastDice[2]) {
@@ -399,7 +310,7 @@ class QuantumVipEngine {
 
     // Đánh giá thị trường giằng co / nhiễu
     const scoreDiff = Math.abs(scoreT - scoreX);
-    const isChoppy = scoreDiff < 1.4;
+    const isChoppy = scoreDiff < 1.35;
 
     let pred, conf, src;
     if (scoreT > scoreX) {
@@ -420,11 +331,11 @@ class QuantumVipEngine {
       conf = 80;
     }
 
-    // Cơ chế Adaptive Anti-Pattern Hedging: Đảo nhịp thích nghi khi sàn bẻ liên tiếp 2 tay
+    // Cơ chế Adaptive Anti-Pattern Hedging: Đảo nhịp khi sàn bẻ liên tiếp 2 tay
     if (tracker && tracker.reverse) {
       pred = pred === "tài" ? "xỉu" : "tài";
       src = `Đảo nhịp bẻ cầu (${src})`;
-      conf = Math.max(75, conf - 2);
+      conf = Math.max(76, conf - 2);
     }
 
     return { pred, conf, src, reverse: tracker?.reverse || false, isChoppy };
@@ -432,7 +343,7 @@ class QuantumVipEngine {
 }
 
 // =========================================================================
-// BỘ ĐỆM KIỂM ĐỊNH HIỆU SUẤT & THỐNG KÊ CHI TIẾT ĐẦY ĐỦ PHIÊN (WIN / LOSS)
+// BỘ ĐỆM KIỂM ĐỊNH HIỆU SUẤT & THỐNG KÊ CHI TIẾT (ĐẦY ĐỦ THẮNG / THUA)
 // =========================================================================
 class AdaptiveHedgeTracker {
   constructor(game) {
@@ -451,7 +362,6 @@ class AdaptiveHedgeTracker {
     let finalDice = diceInfo;
     let finalTotal = totalInfo;
 
-    // Đảm bảo dice không bao giờ là [0, 0, 0] hoặc [1, 1, 1] giả mạo
     if (!Array.isArray(finalDice) || finalDice.length !== 3 || (finalDice[0] === 1 && finalDice[1] === 1 && finalDice[2] === 1 && finalTotal !== 3)) {
       finalDice = generateDiceForTotal(finalTotal || (isTaiActual ? 12 : 9));
       finalTotal = finalDice[0] + finalDice[1] + finalDice[2];
@@ -524,7 +434,7 @@ class AdaptiveHedgeTracker {
 }
 
 // =========================================================================
-// QUẢN LÝ DỮ LIỆU PHIÊN THỜI GIAN THỰC (ĐỒNG BỘ LIÊN TỤC VÀ KHÔNG BAO GIỜ DỪNG)
+// QUẢN LÝ DỮ LIỆU PHIÊN THỜI GIAN THỰC (TỰ ĐỘNG GIỮ NHỊP LIÊN TỤC 24/7)
 // =========================================================================
 class SessionEngineCore {
   constructor(game, url, parse) {
@@ -534,14 +444,14 @@ class SessionEngineCore {
     this.history = store[game]?.history || [];
     this.sessionIds = new Set(this.history.map(h => h.session));
     this.tracker = new AdaptiveHedgeTracker(game);
-    this.engine = new QuantumVipEngine();
+    this.engine = new MasterQuantEngine();
     this.activePred = store[game]?.activePred || null;
     this.isFetching = false;
     this.timer = null;
     this.lastTickTime = Date.now();
     this.onNewSessionListeners = [];
 
-    // Làm sạch và đồng bộ lại nếu có dữ liệu lỗi cũ
+    // Làm sạch và đồng bộ lại nếu có dữ liệu cũ lỗi xúc xắc 1
     if (this.history.some(h => !h.dice || (h.dice[0] === 1 && h.dice[1] === 1 && h.dice[2] === 1 && h.total !== 3))) {
       this.history.forEach(h => {
         if (!h.dice || (h.dice[0] === 1 && h.dice[1] === 1 && h.dice[2] === 1 && h.total !== 3)) {
@@ -638,12 +548,10 @@ class SessionEngineCore {
     this.onNewSessionListeners.push(cb);
   }
 
-  // Tự động đẩy phiên mới nếu nguồn mạng bị nghẽn quá 48s (Đảm bảo tự báo kèo KHÔNG BAO GIỜ TẮT)
   advanceAutonomousSession() {
     const lastSession = this.history.at(-1)?.session || 0;
     const newSessionId = lastSession + 1;
 
-    // Sinh xúc xắc tự nhiên theo phân phối xác suất
     const d1 = 1 + Math.floor(Math.random() * 6);
     const d2 = 1 + Math.floor(Math.random() * 6);
     const d3 = 1 + Math.floor(Math.random() * 6);
@@ -711,7 +619,6 @@ class SessionEngineCore {
       clearTimeout(timeoutId);
       if (!res.ok) {
         this.isFetching = false;
-        // Kiểm tra nếu API Render bị sleep quá 48s, tự động kích hoạt đồng hồ nội tại
         if (Date.now() - this.lastTickTime >= 48000) {
           this.advanceAutonomousSession();
         }
@@ -779,13 +686,11 @@ class SessionEngineCore {
           try { cb(this.game, this.activePred, this.last()); } catch {}
         }
       } else {
-        // Nếu API online nhưng chưa trả phiên mới quá 48s
         if (Date.now() - this.lastTickTime >= 48000) {
           this.advanceAutonomousSession();
         }
       }
     } catch (e) {
-      // Khi API bị sleep / nghẽn mạng / timeout, kích hoạt đồng hồ độc lập
       if (Date.now() - this.lastTickTime >= 48000) {
         this.advanceAutonomousSession();
       }
@@ -814,7 +719,6 @@ function parseUniversalStream(data) {
     const resRaw = String(i.result || i.ketqua || i.ket_qua || i.tx || "");
     let isTai = normalizeResult(resRaw) === "tai";
 
-    // Tìm kiếm xúc xắc qua tất cả các khóa có thể
     let raw = i.dice || i.dices || i.xucxac || i.xuc_xac || i.diceList || i.data_dice;
     if (!raw && i.d1 !== undefined && i.d2 !== undefined && i.d3 !== undefined) {
       raw = [i.d1, i.d2, i.d3];
@@ -921,7 +825,6 @@ function checkUserAccess(userId) {
     return { hasAccess: false, isAdmin: false, status: "not_found", reason: "not_activated" };
   }
 
-  // TRƯỜNG HỢP KEY BỊ ADMIN THU HỒI (CÓ THỂ MỞ LẠI ĐƯỢC)
   if (u.status === "revoked") {
     return {
       hasAccess: false,
@@ -1032,16 +935,14 @@ class TelegramBotClient {
 
     try {
       await this.setMyCommands([
-        { command: "start", description: "🚀 Mở Menu & Bàn phím 1-chạm" },
-        { command: "md5", description: "◈ Soi cầu Tài Xỉu MD5 LC79 (Chuẩn xác cao)" },
-        { command: "hu", description: "❖ Soi cầu Tài Xỉu Hũ truyền thống" },
-        { command: "thongke", description: "📊 Thống kê chi tiết toàn bộ phiên thắng/thua" },
-        { command: "tubao", description: "⚡ Cài đặt bật/tắt tự động báo kèo từng bàn" },
-        { command: "doimau", description: "🎨 Đổi màu chữ & Theme Hologram rực rỡ" },
+        { command: "start", description: "🚀 Mở Menu & Bàn phím điều khiển" },
+        { command: "md5", description: "🎯 Soi cầu Tài Xỉu MD5 LC79 chuẩn xác" },
+        { command: "hu", description: "🎲 Soi cầu Tài Xỉu Hũ truyền thống" },
+        { command: "thongke", description: "📊 Thống kê chi tiết thắng/thua 30P" },
+        { command: "tubao", description: "⚡ Cài đặt bật/tắt tự động báo kèo" },
         { command: "giolamviec", description: "⏰ Giờ làm việc hỗ trợ của Admin" },
-        { command: "thongtin", description: "👤 Xem thời hạn và ngày hết hạn bản quyền" },
-        { command: "quanlyvon", description: "📐 Công thức chia vốn thực chiến an toàn" },
-        { command: "soicausau", description: "🔮 Phân tích ma trận xúc xắc & dòng cầu" },
+        { command: "thongtin", description: "👤 Thời hạn & ngày hết hạn bản quyền" },
+        { command: "quanlyvon", description: "📐 Công thức quản lý vốn an toàn" },
         { command: "menu", description: "👑 Bảng điều khiển quản trị" }
       ]);
     } catch {}
@@ -1070,36 +971,32 @@ class TelegramBotClient {
 const bot = new TelegramBotClient(BOT_TOKEN);
 
 // =========================================================================
-// BÀN PHÍM CỐ ĐỊNH 1-CHẠM THIẾT KẾ HIỆN ĐẠI SIÊU CẤP (FUTURISTIC KEYBOARD)
+// BÀN PHÍM CỐ ĐỊNH 1-CHẠM GỌN GÀNG, ĐẸP MẮT (PERSISTENT KEYBOARD)
 // =========================================================================
 function makePersistentReplyKeyboard(uid) {
   const access = checkUserAccess(uid);
   const rows = [
     [
-      { text: "◈ SOI CẦU MD5 (LC79)" },
-      { text: "❖ SOI CẦU HŨ" }
+      { text: "🎯 SOI CẦU MD5" },
+      { text: "🎲 SOI CẦU HŨ" }
     ],
     [
-      { text: "📊 THỐNG KÊ CHI TIẾT 30P" },
-      { text: "⚡ TỰ ĐỘNG BÁO KÈO" }
+      { text: "📊 THỐNG KÊ 30P" },
+      { text: "⚡ TỰ ĐỘNG BÁO" }
     ],
     [
-      { text: "🎨 ĐỔI PHỐI MÀU CHỮ" },
+      { text: "👤 BẢN QUYỀN" },
       { text: "📐 QUẢN LÝ VỐN" }
     ],
     [
-      { text: "👤 BẢN QUYỀN CỦA BẠN" },
-      { text: "🔮 MA TRẬN CẦU SÂU" }
-    ],
-    [
-      { text: "⏰ GIỜ ADMIN HỖ TRỢ" },
-      { text: "🔄 LÀM MỚI DỮ LIỆU" }
+      { text: "⏰ GIỜ ADMIN" },
+      { text: "🔄 LÀM MỚI" }
     ]
   ];
 
   if (access.isAdmin) {
     rows.push([
-      { text: "👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO" }
+      { text: "👑 MENU ADMIN" }
     ]);
   }
 
@@ -1118,34 +1015,30 @@ function makeUserInlineKeyboard(uid) {
 
   const rows = [
     [
-      { text: "◈ Soi Cầu MD5 (LC79)", callback_data: "pred_md5" },
-      { text: "❖ Soi Cầu Hũ", callback_data: "pred_hu" }
+      { text: "🎯 Soi Cầu MD5", callback_data: "pred_md5" },
+      { text: "🎲 Soi Cầu Hũ", callback_data: "pred_hu" }
     ],
     [
-      { text: "📊 Thống Kê Chi Tiết MD5", callback_data: "stats_md5" },
-      { text: "📊 Thống Kê Chi Tiết Hũ", callback_data: "stats_hu" }
+      { text: "📊 Thống Kê MD5", callback_data: "stats_md5" },
+      { text: "📊 Thống Kê Hũ", callback_data: "stats_hu" }
     ],
     [
       { text: `⚡ Tự Báo MD5: ${md5State}`, callback_data: "toggle_md5" },
       { text: `⚡ Tự Báo Hũ: ${huState}`, callback_data: "toggle_hu" }
     ],
     [
-      { text: "🎨 Đổi Phối Màu Chữ", callback_data: "choose_theme" },
+      { text: "👤 Bản Quyền", callback_data: "my_info" },
       { text: "📐 Quản Lý Vốn", callback_data: "capital_strategy" }
     ],
     [
-      { text: "🔮 Ma Trận Cầu Sâu", callback_data: "deep_analysis" },
-      { text: "👤 Bản Quyền", callback_data: "my_info" }
-    ],
-    [
       { text: "⏰ Giờ Làm Việc Admin", callback_data: "admin_hours" },
-      { text: "🔄 Làm Mới Dữ Liệu", callback_data: "refresh_menu" }
+      { text: "🔄 Làm Mới", callback_data: "refresh_menu" }
     ]
   ];
 
   if (access.isAdmin) {
     rows.push([
-      { text: "👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO", callback_data: "admin_menu" }
+      { text: "👑 BẢNG QUẢN TRỊ ADMIN", callback_data: "admin_menu" }
     ]);
   }
 
@@ -1156,22 +1049,22 @@ function makeAdminKeyboard() {
   return {
     inline_keyboard: [
       [
-        { text: "➕ Key 1 Giờ", callback_data: "gen_1h" },
-        { text: "➕ Key 12 Giờ", callback_data: "gen_12h" },
-        { text: "➕ Key 1 Ngày", callback_data: "gen_1d" }
+        { text: "➕ Key 1H", callback_data: "gen_1h" },
+        { text: "➕ Key 12H", callback_data: "gen_12h" },
+        { text: "➕ Key 1D", callback_data: "gen_1d" }
       ],
       [
-        { text: "➕ Key 7 Ngày", callback_data: "gen_7d" },
-        { text: "➕ Key 30 Ngày", callback_data: "gen_30d" },
+        { text: "➕ Key 7D", callback_data: "gen_7d" },
+        { text: "➕ Key 30D", callback_data: "gen_30d" },
         { text: "👑 Key Vĩnh Viễn", callback_data: "gen_vv" }
       ],
       [
         { text: "📋 Danh Sách Key", callback_data: "admin_list_keys" },
-        { text: "📊 Báo Cáo Toàn Diện", callback_data: "admin_stats" }
+        { text: "📊 Báo Cáo Hệ Thống", callback_data: "admin_stats" }
       ],
       [
         { text: "🧹 Quét Key Hết Hạn", callback_data: "admin_clean_expired" },
-        { text: "📜 Nhật Ký Hoạt Động", callback_data: "admin_view_logs" }
+        { text: "📜 Xem Log", callback_data: "admin_view_logs" }
       ],
       [
         { text: "🔙 Về Menu Chính", callback_data: "user_menu" }
@@ -1180,188 +1073,94 @@ function makeAdminKeyboard() {
   };
 }
 
-function makeThemeSelectKeyboard() {
-  return {
-    inline_keyboard: [
-      [
-        { text: "🎲 RANDOM MỖI PHIÊN (Siêu Lung Linh)", callback_data: "set_theme_random" }
-      ],
-      [
-        { text: "🔮 Cyber Violet Hologram (Tím Hoàng Gia)", callback_data: "set_theme_violet" },
-        { text: "💎 Hyperdrive Sapphire (Xanh Lam Điện)", callback_data: "set_theme_sapphire" }
-      ],
-      [
-        { text: "❇️ Quantum Matrix Emerald (Lục Bảo Laser)", callback_data: "set_theme_emerald" },
-        { text: "👑 Solar Plasma Gold (Hoàng Kim Thái Dương)", callback_data: "set_theme_solar" }
-      ],
-      [
-        { text: "🩸 Crimson Mecha (Huyết Hắc Thạch)", callback_data: "set_theme_crimson" }
-      ],
-      [
-        { text: "🔙 Quay Lại Menu Chính", callback_data: "user_menu" }
-      ]
-    ]
-  };
-}
-
 // =========================================================================
-// GIAO DIỆN HIỂN THỊ DỰ ĐOÁN & BẢNG THỐNG KÊ CHI TIẾT ĐẦY ĐỦ PHIÊN
+// MẪU CARD DỰ ĐOÁN SIÊU GỌN GÀNG & CÔNG NGHỆ MÀU CHỮ TELEGRAM DIFF
+// Sử dụng cú pháp diff highlight: + Xanh lá (Tài), - Đỏ (Xỉu), @@ Cyan, ! Vàng
 // =========================================================================
-function buildPredictionText(gameKey, core, uid) {
+function buildPredictionText(gameKey, core) {
   const p = core.getPrediction();
   const last = core.last();
   const stats = core.tracker.getFullStats(30);
-  const theme = getUserTheme(uid);
 
-  const gameTitle = gameKey === "md5" ? "TÀI XỈU MD5 LC79 (API NGUỒN CHUẨN XÁC)" : "TÀI XỈU HŨ TRUYỀN THỐNG";
-
+  const gameTitle = gameKey === "md5" ? "TÀI XỈU MD5 LC79" : "TÀI XỈU HŨ TELE68";
   if (!p) {
-    return `<b>${theme.iconHeader} ⟦ ${gameTitle} ⟧</b>\n\n<i>Đang đồng bộ dữ liệu lượng tử từ sàn...</i>`;
+    return `<b>🎯 ${gameTitle}</b>\n<i>Đang đồng bộ dữ liệu phiên mới...</i>`;
   }
 
   const isTai = normalizeResult(p.pred) === "tai";
-  const predBadge = isTai ? theme.badgeTai : theme.badgeXiu;
-  const lastResDisplay = last ? (normalizeResult(last.result) === "tai" ? "TÀI" : "XỈU") : "—";
-  const lastDiceText = last && Array.isArray(last.dice) ? `[${last.dice.join("-")}] (${last.total}đ)` : "—";
-  const confBar = makeConfidenceBar(p.conf, theme);
-  const choppyTag = p.isChoppy ? `\n⚠️ <b>CẢNH BÁO LỌC CẦU:</b> <i>Cầu đang giằng co, hãy đi đều tiền hoặc quan sát!</i>\n` : "";
-  const curTimeStr = formatVNDateTime(Date.now());
-  const vipBadge = p.conf >= 88 ? `\n🔥 <b>VIP KÈO CHỐT TỶ LỆ CAO</b>` : "";
+  const predLine = isTai ? `+ TÍN HIỆU: TÀI (${p.conf}%)` : `- TÍN HIỆU: XỈU (${p.conf}%)`;
+  const lastRes = last ? (normalizeResult(last.result) === "tai" ? "TÀI" : "XỈU") : "—";
+  const lastDice = last && Array.isArray(last.dice) ? `[${last.dice.join("-")}=${last.total}đ]` : "—";
+  const choppyTag = p.isChoppy ? `\n! CẢNH BÁO: CẦU GIẰNG CO (NÊN VÀO NHẸ)` : "";
+  const curTime = formatVNDateTime(Date.now()).split(" ")[0];
 
-  return `<b>${theme.iconHeader} ⟦ ${gameTitle} ⟧</b>
-━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>PHIÊN DỰ ĐOÁN: #${p.session}</b>
-👉 <b>TÍN HIỆU ĐỊNH LƯỢNG: ${predBadge}</b>
-${theme.iconFire} <b>ĐỘ TIN CẬY: ${p.conf}%</b>${vipBadge}
-<code>${confBar}</code>
-${theme.iconStat} <b>CHIẾN THUẬT:</b> <code>${p.src}</code>${choppyTag}
-━━━━━━━━━━━━━━━━━━━━━
-🎲 <b>Phiên trước #${last ? last.session : "—"}:</b> ${lastDiceText} ➔ <b>${lastResDisplay}</b>
-📈 <b>Tỉ lệ thắng 30P:</b> <b>${stats.accStr}</b> (Thắng: <b>${stats.winCount}</b> | Thua: <b>${stats.lossCount}</b>)
-🔥 <b>Chuỗi thắng Max:</b> <b>${stats.maxWinStreak} tay liên tiếp</b>
-🕒 <b>Thời gian:</b> <code>${curTimeStr}</code>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bản quyền tác giả: Phạm Anh Khôi · Giờ hỗ trợ: ${ADMIN_WORK_HOURS}</i>`;
+  return `<b>🎯 ${gameTitle}</b>
+<pre><code class="language-diff">@@ PHIÊN DỰ ĐOÁN: #${p.session} @@
+${predLine}
+! CẦU: ${p.src.toUpperCase()}${choppyTag}
+- PHIÊN TRƯỚC: #${last ? last.session : "—"} ${lastDice} ➔ ${lastRes}
++ 30 PHIÊN: ${stats.accStr} (THẮNG:${stats.winCount} | THUA:${stats.lossCount}) • MAX:${stats.maxWinStreak}
+</code></pre><i>⏱️ ${curTime} · Admin: ${TELEGRAM_ADMIN_CONTACT} (${ADMIN_WORK_HOURS})</i>`;
 }
 
-// BẢNG THỐNG KÊ CHI TIẾT NHẢY RA ĐẦY ĐỦ TỪNG PHIÊN (XEM RÕ SAI THUA BAO NHIÊU)
-function buildStatsFullText(gameKey, core, uid) {
+// BẢNG THỐNG KÊ GỌN GÀNG - HIỂN THỊ RÕ SỐ PHIÊN THẮNG / THUA
+function buildStatsFullText(gameKey, core) {
   const stats = core.tracker.getFullStats(30);
-  const theme = getUserTheme(uid);
-  const gameTitle = gameKey === "md5" ? "TÀI XỈU MD5 LC79" : "TÀI XỈU HŨ TELE68";
+  const gameTitle = gameKey === "md5" ? "MD5 LC79" : "HŨ TELE68";
 
   let listText = "";
-  stats.outcomes.forEach((o) => {
-    const statusTag = o.ok ? "✅ THẮNG" : "❌ THUA";
+  // Hiển thị 10 phiên gần nhất cực kỳ gọn gàng
+  stats.outcomes.slice(0, 10).forEach((o) => {
+    const statusIcon = o.ok ? "✅" : "❌";
     const pStr = formatResultDisplay(o.pred);
     const aStr = formatResultDisplay(o.actual);
-    const diceText = Array.isArray(o.dice) && o.dice.length === 3 ? `[${o.dice.join("-")}=${o.total}đ]` : `(${o.total}đ)`;
-    listText += `<b>#${o.session}</b>: <code>${pStr}</code> ➔ <b>${aStr}</b> ${diceText} | <b>${statusTag}</b>\n`;
+    const diceText = Array.isArray(o.dice) ? `[${o.dice.join("-")}=${o.total}đ]` : "";
+    listText += `${statusIcon} <code>#${o.session}: ${pStr} ➔ ${aStr} ${diceText}</code>\n`;
   });
 
-  return `<b>${theme.iconHeader} BẢNG THỐNG KÊ CHI TIẾT 30 PHIÊN (${gameTitle})</b>
-━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>TỈ LỆ CHUẨN XÁC:</b> <b>${stats.accStr}</b>
-🏆 <b>Tổng số phiên kiểm định:</b> <b>${stats.totalCount}</b> phiên
-✅ <b>Số phiên THẮNG:</b> <b>${stats.winCount}</b> phiên
-❌ <b>Số phiên SAI / THUA:</b> <b>${stats.lossCount}</b> phiên
-🔥 <b>Chuỗi thắng lớn nhất:</b> <b>${stats.maxWinStreak}</b> tay liên tiếp
-⚠️ <b>Chuỗi thua lớn nhất:</b> <b>${stats.maxLossStreak}</b> tay
-━━━━━━━━━━━━━━━━━━━━━
-<b>DANH SÁCH CHI TIẾT TỪNG PHIÊN (GẦN NHẤT):</b>
-${listText || "<i>Đang tích lũy dữ liệu phiên...</i>"}
-━━━━━━━━━━━━━━━━━━━━━
-<i>Thuật toán lượng tử tự học thích nghi · Phạm Anh Khôi</i>`;
+  return `<b>📊 THỐNG KÊ 30 PHIÊN (${gameTitle})</b>
+<pre><code class="language-diff">+ TỈ LỆ CHUẨN XÁC: ${stats.accStr} (${stats.winCount}/${stats.totalCount} phiên)
++ TỔNG THẮNG: ${stats.winCount} phiên • CHUỖI MAX: ${stats.maxWinStreak}
+- TỔNG SAI/THUA: ${stats.lossCount} phiên • THUA LIÊN TIẾP: ${stats.maxLossStreak}
+@@ HỆ THỐNG ĐỊNH LƯỢNG MASTER QUANT v9.0 @@
+</code></pre>
+<b>10 Phiên gần nhất:</b>
+${listText || "<i>Đang tích lũy dữ liệu...</i>"}`;
 }
 
 function buildCapitalStrategyText() {
-  return `<b>📐 CÔNG THỨC QUẢN LÝ VỐN ĐỊNH LƯỢNG THỰC CHIẾN</b>
-━━━━━━━━━━━━━━━━━━━━━
-<b>1. CÔNG THỨC KELLY BIẾN THIÊN (Khuyên Dùng):</b>
-• <i>Độ tin cậy 75% - 82%:</i> Đi <b>2% - 3%</b> tổng vốn.
-• <i>Độ tin cậy 83% - 90%:</i> Đi <b>4% - 5%</b> tổng vốn.
-• <i>Độ tin cậy > 90%:</i> Đi <b>6% - 8%</b> tổng vốn.
-👉 Tuyệt đối không vào quá 10% vốn một tay.
+  return `<b>📐 CÔNG THỨC QUẢN LÝ VỐN THỰC CHIẾN GỌN GÀNG</b>
+<pre><code class="language-diff">@@ CHIẾN THUẬT KELLY BIẾN THIÊN @@
++ Độ tin cậy 75% - 82%: Vào 2% - 3% vốn
++ Độ tin cậy 83% - 90%: Vào 4% - 5% vốn
++ Độ tin cậy > 90%: Vào 6% - 8% vốn
 
-<b>2. CHIẾN THUẬT GẤP THẾP THÔNG MINH 3 TẦNG:</b>
-• Tay 1: <b>1 phần</b> ➔ Thắng quay về Tay 1.
-• Tay 2 (nếu gãy): <b>2.2 phần</b> ➔ Thắng quay về Tay 1.
-• Tay 3 (nếu gãy): <b>5 phần</b> ➔ Dừng lại bất kể kết quả.
-👉 Giúp bảo toàn 85% vốn kể cả khi gặp bão cầu!
+@@ GẤP THẾP THÔNG MINH 3 TẦNG @@
++ Tay 1: 1 phần (Thắng quay về Tay 1)
+- Tay 2 (nếu thua): 2.2 phần
+- Tay 3 (nếu thua): 5 phần (Dừng tuyệt đối)
 
-<b>3. NGUYÊN TẮC BẢO TOÀN LÃI:</b>
-• Chạm mục tiêu lãi <b>20% - 30%</b> / ngày ➔ Rút lãi nghỉ ngay.
-• Chạm ngưỡng cắt lỗ <b>15%</b> / ngày ➔ Tắt bot hôm sau tiếp tục.
-━━━━━━━━━━━━━━━━━━━━━
-<i>Chia sẻ kinh nghiệm thực chiến từ Phạm Anh Khôi</i>`;
+! NGUYÊN TẮC: Lãi 20%-30% nghỉ ngay. Cắt lỗ 15%!
+</code></pre>`;
 }
 
-function buildDeepAnalysisText(gameKey, core, uid) {
-  const history = core.history.slice(-30);
-  const theme = getUserTheme(uid);
-  const gameName = gameKey === "md5" ? "TÀI XỈU MD5 LC79" : "TÀI XỈU HŨ TELE68";
-
-  if (history.length < 10) return "<i>Đang tích lũy thêm dữ liệu để phân tích sâu...</i>";
-
-  const totals = history.map(h => h.total);
-  const avg = (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1);
-  const taiCount = history.filter(h => normalizeResult(h.result) === "tai").length;
-  const xiuCount = history.length - taiCount;
-
-  const diceCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-  history.forEach(h => {
-    if (Array.isArray(h.dice)) {
-      h.dice.forEach(d => { if (diceCounts[d] !== undefined) diceCounts[d]++; });
-    }
-  });
-
-  const topDice = Object.entries(diceCounts).sort((a, b) => b[1] - a[1]);
-
-  return `<b>${theme.iconHeader} MA TRẬN XÚC XẮC & DÒNG CẦU SÂU (${gameName})</b>
-━━━━━━━━━━━━━━━━━━━━━
-📊 <b>Thống kê mẫu 30 phiên:</b>
-• Tỉ số Tài/Xỉu: <b>${taiCount} Tài (${Math.round(taiCount/history.length*100)}%)</b> — <b>${xiuCount} Xỉu (${Math.round(xiuCount/history.length*100)}%)</b>
-• Điểm xúc xắc trung bình (MA): <b>${avg}</b> (Kỳ vọng chuẩn: 10.5)
-• Mặt xúc xắc về nhiều nhất: Mặt <b>${topDice[0][0]}</b> (${topDice[0][1]} lần), Mặt <b>${topDice[1][0]}</b> (${topDice[1][1]} lần)
-• Mặt xúc xắc về ít nhất: Mặt <b>${topDice[5][0]}</b> (${topDice[5][1]} lần)
-━━━━━━━━━━━━━━━━━━━━━
-🧠 <b>Đánh giá thuật toán lượng tử:</b>
-• Cân bằng động học: <i>${Math.abs(taiCount - xiuCount) <= 4 ? "Cầu cân bằng, ổn định cao" : "Cầu có thiên hướng lệch một phía"}</i>
-• Xu hướng tiếp theo: <b>${avg >= 11.2 ? "Ưu tiên hồi quy Xỉu" : (avg <= 9.8 ? "Ưu tiên hồi quy Tài" : "Bám theo xu hướng bệt/đảo")}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Hệ thống phân tích lượng tử chuyên sâu · Phạm Anh Khôi</i>`;
-}
-
-// Thông báo giờ làm việc của Admin
 function buildAdminHoursMessage() {
-  return `<b>⏰ THÔNG BÁO KHUNG GIỜ LÀM VIỆC & HỖ TRỢ ADMIN</b>
-━━━━━━━━━━━━━━━━━━━━━
-👤 <b>Admin Quản Trị:</b> <b>Phạm Anh Khôi</b> (@anhkhoi_xabc)
-🕒 <b>Khung Giờ Hỗ Trợ Chính Thức:</b>
-👉 <b>12:00 trưa đến 21:00 - 22:00 tối hàng ngày</b>
-
-ℹ️ <b>Quyền Lợi & Hỗ Trợ Trong Ca:</b>
-• Cấp phát và gia hạn Key bản quyền tức thì trong 30 giây.
-• Mở lại key khi bị tạm thu hồi hoặc giải quyết sự cố.
-• Tư vấn phương pháp soi cầu và quản lý vốn định lượng.
-
-<i>Lưu ý: Ngoài khung giờ trên, bạn vẫn có thể để lại tin nhắn, Admin sẽ phản hồi ngay khi vào ca lúc 12h trưa!</i>`;
+  return `<b>⏰ KHUNG GIỜ LÀM VIỆC CỦA ADMIN</b>
+<pre><code class="language-diff">@@ ADMIN: PHẠM ANH KHÔI (@anhkhoi_xabc) @@
++ CA TRỰC: 12H00 TRƯA ĐẾN 21H00 - 22H00 TỐI HÀNG NGÀY
++ HỖ TRỢ: Cấp key, gia hạn, mở lại key bị thu hồi
+! Ngoài giờ vẫn nhận tin nhắn, hỗ trợ ngay khi vào ca
+</code></pre>`;
 }
 
-// Thông báo khi key bị thu hồi
 function buildRevokedMessage(revokedKey) {
   return `<b>⛔ KEY BẢN QUYỀN ĐÃ BỊ THU HỒI!</b>
-━━━━━━━━━━━━━━━━━━━━━
-⚠️ <b>Thông báo quan trọng:</b>
-Key bản quyền của bạn (<code>${revokedKey || "VIP"}</code>) đã bị <b>Admin tạm thu hồi</b> và vô hiệu hóa khỏi hệ thống.
-
-ℹ️ <i>Key thu hồi có thể được Admin MỞ LẠI bất kỳ lúc nào sau khi xác minh.</i>
-
-📞 <b>Vui lòng liên hệ Admin Phạm Anh Khôi để được hỗ trợ mở lại:</b>
-👉 Telegram: <b>${TELEGRAM_ADMIN_CONTACT}</b>
-⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Sau khi được mở lại hoặc cấp key mới, bạn có thể tiếp tục sử dụng bình thường.</i>`;
+<pre><code class="language-diff">- TRẠNG THÁI: TẠM THU HỒI BỞI ADMIN
+@@ KEY: ${revokedKey || "VIP"} @@
+! Key này CÓ THỂ MỞ LẠI sau khi liên hệ Admin
++ Admin hỗ trợ: @anhkhoi_xabc
++ Khung giờ trực: 12h00 trưa đến 22h00 tối
+</code></pre>`;
 }
 
 // =========================================================================
@@ -1378,7 +1177,6 @@ async function handleTelegramUpdate(update) {
 
     const access = checkUserAccess(uid);
 
-    // Xử lý riêng khi user bị thu hồi key
     if (access.isRevoked) {
       await bot.answerCallback(q.id, "⛔ Key của bạn đã bị thu hồi bởi Admin!", true);
       await bot.sendMessage(chatId, buildRevokedMessage(access.revokedKey), {
@@ -1391,9 +1189,9 @@ async function handleTelegramUpdate(update) {
 
     if (data === "how_to_key") {
       await bot.answerCallback(q.id);
-      await bot.sendMessage(chatId, `<b>ℹ️ HƯỚNG DẪN KÍCH HOẠT BẢN QUYỀN</b>\n\n1. Nhắn tin Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> (Giờ trực: <b>${ADMIN_WORK_HOURS}</b>) để nhận Key.\n2. Gửi tin nhắn theo cú pháp:\n👉 <code>/key &lt;mã_key&gt;</code>\n<i>Ví dụ:</i> <code>/key AK-7D-ABC123</code>\n\n3. Sau khi kích hoạt thành công, bot sẽ thông báo chính xác ngày giờ hết hạn và mở khóa toàn bộ chức năng.`, {
+      await bot.sendMessage(chatId, `<b>ℹ️ KÍCH HOẠT KEY BẢN QUYỀN</b>\n\n1. Nhắn Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> (Trực: <b>${ADMIN_WORK_HOURS}</b>) để lấy key.\n2. Gửi lệnh:\n👉 <code>/key &lt;mã_key&gt;</code>`, {
         reply_markup: {
-          inline_keyboard: [[{ text: "📞 Nhắn Tin Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
+          inline_keyboard: [[{ text: "📞 Nhắn Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
         }
       });
       return;
@@ -1403,54 +1201,28 @@ async function handleTelegramUpdate(update) {
       await bot.answerCallback(q.id);
       await bot.sendMessage(chatId, buildAdminHoursMessage(), {
         reply_markup: {
-          inline_keyboard: [[{ text: "📞 Liên Hệ Admin Ngay", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
+          inline_keyboard: [[{ text: "📞 Nhắn Tin Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
         }
       });
       return;
     }
 
-    // ĐỔI PHỐI MÀU GIAO DIỆN
-    if (data === "choose_theme") {
-      await bot.answerCallback(q.id);
-      const curTheme = getUserTheme(uid);
-      await bot.sendMessage(chatId, `<b>🎨 CHỌN PHỐI MÀU GIAO DIỆN CHO BOT</b>\n━━━━━━━━━━━━━━━━━━━━━\nTheme đang dùng: <b>${curTheme.name}</b>\n\n<i>Chọn màu bạn thích để làm nổi bật tin nhắn dự đoán:</i>`, {
-        reply_markup: makeThemeSelectKeyboard()
-      });
-      return;
-    }
-
-    if (data.startsWith("set_theme_")) {
-      const themeId = data.replace("set_theme_", "");
-      store.users[uid] = store.users[uid] || {};
-      store.users[uid].theme = themeId;
-      saveStore(store);
-      await bot.answerCallback(q.id, `Đã chọn giao diện: ${themeId.toUpperCase()}!`, true);
-      const th = getUserTheme(uid);
-      await bot.sendMessage(chatId, `✅ <b>ĐÃ CẬP NHẬT PHỐI MÀU THÀNH CÔNG!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎨 <b>Giao diện:</b> <b>${th.name}</b>\n🟣 Huy hiệu Tài: <b>${th.badgeTai}</b>\n🌸 Huy hiệu Xỉu: <b>${th.badgeXiu}</b>\n${th.iconFire} Thanh đo: <code>${th.barFill.repeat(8)}${th.barEmpty.repeat(2)}</code> 80%\n━━━━━━━━━━━━━━━━━━━━━\n<i>Từ giờ các tin nhắn dự đoán sẽ tự động hiển thị theo màu sắc này.</i>`, {
-        reply_markup: {
-          inline_keyboard: [[{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]]
-        }
-      });
-      return;
-    }
-
-    // Kiểm tra quyền truy cập cho user thường
     if (!access.hasAccess && data !== "admin_menu" && !data.startsWith("gen_") && data !== "admin_list_keys" && data !== "admin_stats" && data !== "admin_clean_expired" && data !== "admin_view_logs") {
       await bot.answerCallback(q.id, "⚠️ Bạn chưa kích hoạt Key bản quyền!", true);
-      await bot.sendMessage(chatId, `<b>⛔ TRUY CẬP BỊ TỪ CHỐI</b>\n\nBạn chưa kích hoạt Key hoặc thời hạn sử dụng đã hết.\nVui lòng gửi lệnh: <code>/key &lt;mã_key_của_bạn&gt;</code>\nHoặc liên hệ: <b>${TELEGRAM_ADMIN_CONTACT}</b> (Trực từ <b>${ADMIN_WORK_HOURS}</b>)`);
+      await bot.sendMessage(chatId, `<b>⛔ TRUY CẬP BỊ TỪ CHỐI</b>\n\nVui lòng kích hoạt key: <code>/key &lt;mã_key&gt;</code>\nLiên hệ Admin: <b>${TELEGRAM_ADMIN_CONTACT}</b>`);
       return;
     }
 
     // SOI CẦU MD5 (LC79)
     if (data === "pred_md5") {
       await bot.answerCallback(q.id);
-      const text = buildPredictionText("md5", md5, uid);
+      const text = buildPredictionText("md5", md5);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_md5" }],
-            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_md5" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
+            [{ text: "📊 Xem Chi Tiết 30P", callback_data: "stats_md5" }],
+            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
@@ -1460,29 +1232,29 @@ async function handleTelegramUpdate(update) {
     // SOI CẦU HŨ
     if (data === "pred_hu") {
       await bot.answerCallback(q.id);
-      const text = buildPredictionText("hu", hu, uid);
+      const text = buildPredictionText("hu", hu);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_hu" }],
-            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_hu" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
+            [{ text: "📊 Xem Chi Tiết 30P", callback_data: "stats_hu" }],
+            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
       return;
     }
 
-    // THỐNG KÊ CHI TIẾT TỪNG PHIÊN (THUA / THẮNG ĐẦY ĐỦ)
+    // THỐNG KÊ CHI TIẾT MD5
     if (data === "stats_md5") {
       await bot.answerCallback(q.id);
-      const text = buildStatsFullText("md5", md5, uid);
+      const text = buildStatsFullText("md5", md5);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Làm Mới Thống Kê MD5", callback_data: "stats_md5" }],
-            [{ text: "❖ Xem Thống Kê Bàn Hũ", callback_data: "stats_hu" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
+            [{ text: "🎲 Thống Kê Hũ", callback_data: "stats_hu" }],
+            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
@@ -1491,13 +1263,13 @@ async function handleTelegramUpdate(update) {
 
     if (data === "stats_hu") {
       await bot.answerCallback(q.id);
-      const text = buildStatsFullText("hu", hu, uid);
+      const text = buildStatsFullText("hu", hu);
       await bot.sendMessage(chatId, text, {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Làm Mới Thống Kê Hũ", callback_data: "stats_hu" }],
-            [{ text: "◈ Xem Thống Kê Bàn MD5", callback_data: "stats_md5" }],
-            [{ text: "🔙 Về Menu Chính", callback_data: "user_menu" }]
+            [{ text: "🎯 Thống Kê MD5", callback_data: "stats_md5" }],
+            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
           ]
         }
       });
@@ -1512,35 +1284,7 @@ async function handleTelegramUpdate(update) {
       return;
     }
 
-    if (data === "deep_analysis") {
-      await bot.answerCallback(q.id);
-      const tMd5 = buildDeepAnalysisText("md5", md5, uid);
-      await bot.sendMessage(chatId, tMd5, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "❖ Xem Ma Trận Bàn Hũ", callback_data: "deep_hu" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    if (data === "deep_hu") {
-      await bot.answerCallback(q.id);
-      const tHu = buildDeepAnalysisText("hu", hu, uid);
-      await bot.sendMessage(chatId, tHu, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "◈ Xem Ma Trận Bàn MD5", callback_data: "deep_analysis" }],
-            [{ text: "🔙 Menu Chính", callback_data: "user_menu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    // BẬT / TẮT TỰ ĐỘNG BÁO MD5 (DUY NHẤT 1 BÀN LC79)
+    // BẬT / TẮT TỰ ĐỘNG BÁO MD5 (LC79)
     if (data === "toggle_md5") {
       store.users[uid] = store.users[uid] || {};
       store.users[uid].md5Alert = !store.users[uid].md5Alert;
@@ -1549,10 +1293,9 @@ async function handleTelegramUpdate(update) {
       await bot.answerCallback(q.id, `Đã ${isNowOn ? "BẬT 🟢" : "TẮT 🔴"} tự báo kèo MD5!`);
       await bot.editMessageReplyMarkup(chatId, msgId, { reply_markup: makeUserInlineKeyboard(uid) });
 
-      // Nếu vừa BẬT: Gửi ngay tín hiệu phiên hiện tại để người dùng thấy hệ thống chạy ngay lập tức!
       if (isNowOn) {
-        const pText = buildPredictionText("md5", md5, uid);
-        await bot.sendMessage(chatId, `⚡ <b>ĐÃ KÍCH HOẠT TỰ ĐỘNG BÁO KÈO MD5 THÀNH CÔNG!</b>\n\n${pText}\n\n<i>⏱️ Hệ thống sẽ tự động cập nhật và gửi tin nhắn mỗi khi ra phiên mới liên tục 24/7!</i>`);
+        const pText = buildPredictionText("md5", md5);
+        await bot.sendMessage(chatId, `⚡ <b>ĐÃ KÍCH HOẠT TỰ ĐỘNG BÁO MD5!</b>\n\n${pText}\n<i>⏱️ Tự động gửi tin nhắn mỗi 50s/phiên liên tục 24/7!</i>`);
       }
       return;
     }
@@ -1567,8 +1310,8 @@ async function handleTelegramUpdate(update) {
       await bot.editMessageReplyMarkup(chatId, msgId, { reply_markup: makeUserInlineKeyboard(uid) });
 
       if (isNowOn) {
-        const pText = buildPredictionText("hu", hu, uid);
-        await bot.sendMessage(chatId, `⚡ <b>ĐÃ KÍCH HOẠT TỰ ĐỘNG BÁO KÈO HŨ THÀNH CÔNG!</b>\n\n${pText}\n\n<i>⏱️ Hệ thống sẽ tự động gửi tin nhắn mỗi khi ra phiên mới liên tục 24/7!</i>`);
+        const pText = buildPredictionText("hu", hu);
+        await bot.sendMessage(chatId, `⚡ <b>ĐÃ KÍCH HOẠT TỰ ĐỘNG BÁO HŨ!</b>\n\n${pText}\n<i>⏱️ Tự động gửi tin nhắn mỗi 50s/phiên liên tục 24/7!</i>`);
       }
       return;
     }
@@ -1579,22 +1322,15 @@ async function handleTelegramUpdate(update) {
       const u = store.users[uid] || {};
       const expiryFormatted = access.expiresAt ? formatVNDateTime(access.expiresAt) : "Vĩnh Viễn (Lifetime)";
       const activatedFormatted = u.activatedAt ? formatVNDateTime(u.activatedAt) : "—";
-      const th = getUserTheme(uid);
 
-      const msg = `<b>${th.iconHeader} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
-━━━━━━━━━━━━━━━━━━━━━
-🆔 <b>ID Telegram:</b> <code>${uid}</code>
-🔑 <b>Mã Key Đang Dùng:</b> <code>${u.activatedKey || "Admin Tối Cao"}</code>
-🕒 <b>Thời Điểm Kích Hoạt:</b> <b>${activatedFormatted}</b>
-📅 <b>HẠN DÙNG ĐẾN:</b> <b>${expiryFormatted}</b>
-⏳ <b>Thời Gian Còn Lại:</b> <b>${access.remainingText}</b>
-🎨 <b>Theme Giao Diện:</b> <b>${th.name}</b>
-━━━━━━━━━━━━━━━━━━━━━
-⚡ <b>Tự Báo MD5:</b> ${u.md5Alert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
-⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Đang Bật" : "🔴 Đang Tắt"}
-━━━━━━━━━━━━━━━━━━━━━
-⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
-<i>Tác giả: Phạm Anh Khôi · Hỗ trợ: ${TELEGRAM_ADMIN_CONTACT}</i>`;
+      const msg = `<b>👤 BẢN QUYỀN CỦA BẠN</b>
+<pre><code class="language-diff">@@ ID: ${uid} @@
++ KEY: ${u.activatedKey || "Admin Tối Cao"}
++ HẠN DÙNG ĐẾN: ${expiryFormatted}
++ CÒN LẠI: ${access.remainingText}
+! KÍCH HOẠT: ${activatedFormatted}
+- TỰ BÁO MD5: ${u.md5Alert ? "BẬT" : "TẮT"} • HŨ: ${u.huAlert ? "BẬT" : "TẮT"}
+</code></pre><i>Admin: ${TELEGRAM_ADMIN_CONTACT} (${ADMIN_WORK_HOURS})</i>`;
       await bot.sendMessage(chatId, msg, {
         reply_markup: {
           inline_keyboard: [[{ text: "🔙 Menu Chính", callback_data: "user_menu" }]]
@@ -1605,15 +1341,12 @@ async function handleTelegramUpdate(update) {
 
     if (data === "refresh_menu" || data === "user_menu") {
       await bot.answerCallback(q.id, "Đã làm mới dữ liệu!");
-      const th = getUserTheme(uid);
-      const welcome = `<b>${th.iconHeader} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.5 VIP</b>
-━━━━━━━━━━━━━━━━━━━━━
-👤 <b>Người dùng:</b> <code>${q.from.first_name || uid}</code>
-🆔 <b>ID:</b> <code>${uid}</code>
-⏳ <b>Thời hạn:</b> <b>${access.remainingText}</b>
-⏰ <b>Giờ Admin trực:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bấm các nút dưới màn hình để tra cứu tức thì:</i>`;
+      const welcome = `<b>⚡ MASTER QUANT BOT v9.0 // PHẠM ANH KHÔI</b>
+<pre><code class="language-diff">+ TRẠNG THÁI: HOẠT ĐỘNG 24/7
+@@ ID: ${uid} @@
+! HẠN DÙNG: ${access.remainingText}
+- GIỜ ADMIN TRỰC: ${ADMIN_WORK_HOURS}
+</code></pre><i>Bấm các nút bên dưới để sử dụng nhanh:</i>`;
       await bot.editMessageText(chatId, msgId, welcome, {
         reply_markup: makeUserInlineKeyboard(uid)
       });
@@ -1629,13 +1362,11 @@ async function handleTelegramUpdate(update) {
     if (data === "admin_menu") {
       await bot.answerCallback(q.id);
       const adminTxt = `<b>👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO</b>
-━━━━━━━━━━━━━━━━━━━━━
-Xin chào Sếp <b>Phạm Anh Khôi</b>!
-ID Admin: <code>${uid}</code>
-Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn) và quản lý hệ thống.
-⏰ <b>Giờ làm việc:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bấm nút bên dưới để tạo key hoặc quản lý:</i>`;
+<pre><code class="language-diff">@@ SẾP PHẠM ANH KHÔI @@
++ ID ADMIN: ${uid}
+! LỆNH: Tạo Key, Thu Hồi (mở lại được), Xoá Key (mất luôn)
+- GIỜ TRỰC: ${ADMIN_WORK_HOURS}
+</code></pre>`;
       await bot.editMessageText(chatId, msgId, adminTxt, {
         reply_markup: makeAdminKeyboard()
       });
@@ -1661,18 +1392,11 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
         saveStore(store);
         await bot.answerCallback(q.id, "Đã tạo Key thành công!");
 
-        const expExplanation = dur.ms === -1
-          ? "📅 <b>Hạn dùng sau khi kích hoạt:</b> <b>Vĩnh Viễn (Lifetime)</b>"
-          : `📅 <b>Thời hạn:</b> <b>${dur.text}</b> (Bắt đầu đếm ngược ngay khi khách kích hoạt)`;
-
-        await bot.sendMessage(chatId, `<b>🎉 TẠO KEY BẢN QUYỀN THÀNH CÔNG!</b>
-━━━━━━━━━━━━━━━━━━━━━
-🔑 <b>Mã Key:</b> <code>${kStr}</code>
-⏳ <b>Gói dịch vụ:</b> <b>${dur.text}</b>
-${expExplanation}
-━━━━━━━━━━━━━━━━━━━━━
-<i>Gửi mã key này cho khách. Khách kích hoạt bằng lệnh:</i>
-👉 <code>/key ${kStr}</code>`, {
+        await bot.sendMessage(chatId, `<b>🎉 TẠO KEY THÀNH CÔNG!</b>
+<pre><code class="language-diff">+ KEY: ${kStr}
++ THỜI HẠN: ${dur.text}
+! CÚ PHÁP: /key ${kStr}
+</code></pre>`, {
           reply_markup: {
             inline_keyboard: [[{ text: "🔙 Về Menu Admin", callback_data: "admin_menu" }]]
           }
@@ -1685,18 +1409,18 @@ ${expExplanation}
       await bot.answerCallback(q.id);
       const allKeys = Object.entries(store.keys);
       if (allKeys.length === 0) {
-        await bot.sendMessage(chatId, "<i>Chưa có key nào trong hệ thống.</i>", {
+        await bot.sendMessage(chatId, "<i>Chưa có key nào.</i>", {
           reply_markup: { inline_keyboard: [[{ text: "🔙 Menu Admin", callback_data: "admin_menu" }]] }
         });
         return;
       }
 
-      let keyMsg = `<b>📋 DANH SÁCH KEY BẢN QUYỀN (${allKeys.length} Key)</b>\n━━━━━━━━━━━━━━━━━━━━━\n`;
+      let keyMsg = `<b>📋 DANH SÁCH KEY (${allKeys.length} Key)</b>\n`;
       allKeys.slice(-15).reverse().forEach(([k, v]) => {
-        let st = "🟢 Còn trống";
-        if (v.status === "used") st = "🔴 Đã kích hoạt";
-        if (v.status === "revoked") st = "⛔ BỊ THU HỒI (Có thể mở lại)";
-        const user = v.activatedBy ? `(ID: <code>${v.activatedBy}</code>)` : "";
+        let st = "🟢 Trống";
+        if (v.status === "used") st = "🔴 Đã dùng";
+        if (v.status === "revoked") st = "⛔ BỊ THU HỒI";
+        const user = v.activatedBy ? `(${v.activatedBy})` : "";
         keyMsg += `• <code>${k}</code> | ${v.durationText} | ${st} ${user}\n`;
       });
       await bot.sendMessage(chatId, keyMsg, {
@@ -1714,17 +1438,14 @@ ${expExplanation}
       const md5Stats = md5.tracker.getFullStats(30);
       const huStats = hu.tracker.getFullStats(30);
 
-      const statsMsg = `<b>📊 BÁO CÁO TOÀN DIỆN HỆ THỐNG</b>
-━━━━━━━━━━━━━━━━━━━━━
-👥 <b>Tổng Người Dùng:</b> <b>${totalUsers}</b>
-🔑 <b>Key Chưa Kích Hoạt:</b> <b>${activeKeys}</b>
-🔐 <b>Key Đang Hoạt Động:</b> <b>${usedKeys}</b>
-⛔ <b>Key Bị Thu Hồi (Có thể mở lại):</b> <b>${revokedKeys}</b>
-━━━━━━━━━━━━━━━━━━━━━
-◈ <b>Tài Xỉu MD5 LC79 (30P):</b> <b>${md5Stats.accStr}</b> (Thắng ${md5Stats.winCount} | Thua ${md5Stats.lossCount})
-❖ <b>Tài Xỉu Hũ (30P):</b> <b>${huStats.accStr}</b> (Thắng ${huStats.winCount} | Thua ${huStats.lossCount})
-━━━━━━━━━━━━━━━━━━━━━
-<i>Hệ thống định lượng vận hành 24/7 ổn định mượt mà.</i>`;
+      const statsMsg = `<b>📊 BÁO CÁO HỆ THỐNG GỌN GÀNG</b>
+<pre><code class="language-diff">+ TỔNG NGƯỜI DÙNG: ${totalUsers}
++ KEY CHƯA DÙNG: ${activeKeys}
++ KEY ĐANG DÙNG: ${usedKeys}
+- KEY BỊ THU HỒI: ${revokedKeys}
+@@ MD5 LC79 (30P): ${md5Stats.accStr} (W:${md5Stats.winCount} | L:${md5Stats.lossCount}) @@
+@@ HŨ TELE68 (30P): ${huStats.accStr} (W:${huStats.winCount} | L:${huStats.lossCount}) @@
+</code></pre>`;
       await bot.sendMessage(chatId, statsMsg, {
         reply_markup: { inline_keyboard: [[{ text: "🔙 Menu Admin", callback_data: "admin_menu" }]] }
       });
@@ -1742,7 +1463,7 @@ ${expExplanation}
         }
       }
       saveStore(store);
-      await bot.sendMessage(chatId, `🧹 <b>Đã dọn dẹp thành công ${count} key hết hạn!</b>`, {
+      await bot.sendMessage(chatId, `🧹 <b>Đã dọn ${count} key hết hạn!</b>`, {
         reply_markup: { inline_keyboard: [[{ text: "🔙 Menu Admin", callback_data: "admin_menu" }]] }
       });
       return;
@@ -1752,12 +1473,12 @@ ${expExplanation}
       await bot.answerCallback(q.id);
       const logs = store.logs || [];
       if (logs.length === 0) {
-        await bot.sendMessage(chatId, "<i>Chưa có nhật ký hoạt động.</i>", {
+        await bot.sendMessage(chatId, "<i>Chưa có log.</i>", {
           reply_markup: { inline_keyboard: [[{ text: "🔙 Menu Admin", callback_data: "admin_menu" }]] }
         });
         return;
       }
-      let logText = "<b>📜 NHẬT KÝ HOẠT ĐỘNG GẦN ĐÂY:</b>\n━━━━━━━━━━━━━━━━━━━━━\n";
+      let logText = "<b>📜 NHẬT KÝ GẦN ĐÂY:</b>\n";
       logs.slice(-10).reverse().forEach(l => {
         logText += `• [${l.time}] <b>${l.action}:</b> ${l.detail}\n`;
       });
@@ -1775,9 +1496,9 @@ ${expExplanation}
     const text = m.text.trim();
     const chatId = m.chat.id;
 
-    // KIỂM TRA TRẠNG THÁI BỊ THU HỒI CỦA USER
+    // KIỂM TRA TRẠNG THÁI BỊ THU HỒI
     const currentAccess = checkUserAccess(uid);
-    if (currentAccess.isRevoked && !text.startsWith("/key") && !text.startsWith("/claim_admin") && !text.startsWith("/giolamviec") && text !== "⏰ GIỜ ADMIN HỖ TRỢ") {
+    if (currentAccess.isRevoked && !text.startsWith("/key") && !text.startsWith("/claim_admin") && !text.startsWith("/giolamviec") && text !== "⏰ GIỜ ADMIN") {
       await bot.sendMessage(chatId, buildRevokedMessage(currentAccess.revokedKey), {
         reply_markup: {
           inline_keyboard: [[{ text: "📞 Liên Hệ Admin Mở Lại", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
@@ -1795,37 +1516,32 @@ ${expExplanation}
           store.adminIds.push(uid);
           saveStore(store);
         }
-        addSystemLog("Claim Admin", `User ${uid} kích hoạt quyền Admin Tối Cao`);
-        await bot.sendMessage(chatId, `<b>👑 XÁC THỰC ADMIN THÀNH CÔNG!</b>\n\nXin chào Sếp <b>Phạm Anh Khôi</b>!\nID <code>${uid}</code> đã được nâng cấp quyền <b>Admin Tối Cao</b>.\n⏰ <b>Giờ làm việc:</b> <b>${ADMIN_WORK_HOURS}</b>`, {
+        addSystemLog("Claim Admin", `User ${uid} kích hoạt Admin`);
+        await bot.sendMessage(chatId, `<b>👑 XÁC THỰC ADMIN THÀNH CÔNG!</b>\n\nXin chào Sếp <b>Phạm Anh Khôi</b>! Toàn quyền kích hoạt.`, {
           reply_markup: makePersistentReplyKeyboard(uid)
         });
       } else {
-        await bot.sendMessage(chatId, `<b>❌ MẬT KHẨU KHÔNG CHÍNH XÁC!</b>\nCú pháp: <code>/claim_admin &lt;mật_khẩu_master&gt;</code>`);
+        await bot.sendMessage(chatId, `<b>❌ Mật khẩu không đúng!</b>\nCú pháp: <code>/claim_admin &lt;mật_khẩu&gt;</code>`);
       }
       return;
     }
 
-    // LỆNH START & MỞ BÀN PHÍM CỐ ĐỊNH CHỌN 1-CHẠM
-    if (text === "/start" || text === "/menu" || text === "🔄 LÀM MỚI DỮ LIỆU") {
+    // LỆNH START & MỞ BÀN PHÍM CỐ ĐỊNH GỌN GÀNG
+    if (text === "/start" || text === "/menu" || text === "🔄 LÀM MỚI") {
       const access = checkUserAccess(uid);
 
       if (!access.hasAccess) {
-        const welcomeNotActive = `<b>HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.5 VIP</b>
-━━━━━━━━━━━━━━━━━━━━━
-Xin chào <b>${m.from.first_name || "bạn"}</b>!
-🆔 <b>ID của bạn:</b> <code>${uid}</code>
-⚠️ <b>Trạng thái:</b> <b>Chưa kích hoạt bản quyền</b>
-⏰ <b>Giờ hỗ trợ Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-Hệ thống bắt cầu lượng tử thích nghi công nghệ cao Tài Xỉu MD5 LC79 & Hũ.
-Để sử dụng, vui lòng liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> để nhận Key bản quyền.
-
-Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
-👉 <code>/key &lt;mã_key_của_bạn&gt;</code>`;
+        const welcomeNotActive = `<b>⚡ MASTER QUANT BOT v9.0 // PHẠM ANH KHÔI</b>
+<pre><code class="language-diff">- TRẠNG THÁI: CHƯA KÍCH HOẠT BẢN QUYỀN
+@@ ID CỦA BẠN: ${uid} @@
++ MUA KEY LIÊN HỆ: ${TELEGRAM_ADMIN_CONTACT}
+! GIỜ ADMIN TRỰC: ${ADMIN_WORK_HOURS}
+</code></pre>
+<i>Nếu đã có Key, gửi:</i> <code>/key &lt;mã_key&gt;</code>`;
         await bot.sendMessage(chatId, welcomeNotActive, {
           reply_markup: {
             inline_keyboard: [
-              [{ text: "📞 Mua Key Admin (@anhkhoi_xabc)", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }],
+              [{ text: "📞 Mua Key Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }],
               [{ text: "⏰ Giờ Làm Việc Admin", callback_data: "admin_hours" }],
               [{ text: "ℹ️ Hướng Dẫn Kích Hoạt", callback_data: "how_to_key" }]
             ]
@@ -1834,16 +1550,12 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
         return;
       }
 
-      const th = getUserTheme(uid);
-      const welcomeActive = `<b>${th.iconHeader} HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN QUANTUM v8.5 VIP</b>
-━━━━━━━━━━━━━━━━━━━━━
-👤 <b>Người dùng:</b> <code>${m.from.first_name || uid}</code>
-🆔 <b>ID:</b> <code>${uid}</code>
-⏳ <b>Thời hạn:</b> <b>${access.remainingText}</b>
-🎨 <b>Phối màu chữ:</b> <b>${th.name}</b>
-⏰ <b>Giờ Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bàn phím điều khiển nhanh 1-chạm đã sẵn sàng dưới màn hình! Chạm là chạy ngay!</i>`;
+      const welcomeActive = `<b>⚡ MASTER QUANT BOT v9.0 // PHẠM ANH KHÔI</b>
+<pre><code class="language-diff">+ TRẠNG THÁI: HOẠT ĐỘNG 24/7
+@@ ID: ${uid} @@
+! HẠN DÙNG: ${access.remainingText}
+- GIỜ ADMIN TRỰC: ${ADMIN_WORK_HOURS}
+</code></pre><i>Chạm các nút bên dưới để soi cầu ngay lập tức!</i>`;
       await bot.sendMessage(chatId, welcomeActive, {
         reply_markup: makePersistentReplyKeyboard(uid)
       });
@@ -1851,20 +1563,11 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // LỆNH GIỜ LÀM VIỆC CỦA ADMIN
-    if (text === "⏰ GIỜ ADMIN HỖ TRỢ" || text === "/giolamviec") {
+    if (text === "⏰ GIỜ ADMIN" || text === "/giolamviec") {
       await bot.sendMessage(chatId, buildAdminHoursMessage(), {
         reply_markup: {
           inline_keyboard: [[{ text: "📞 Nhắn Tin Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
         }
-      });
-      return;
-    }
-
-    // LỆNH ĐỔI PHỐI MÀU GIAO DIỆN
-    if (text === "🎨 ĐỔI PHỐI MÀU CHỮ" || text === "/doimau") {
-      const curTheme = getUserTheme(uid);
-      await bot.sendMessage(chatId, `<b>🎨 CHỌN PHỐI MÀU GIAO DIỆN CHO BOT</b>\n━━━━━━━━━━━━━━━━━━━━━\nTheme đang dùng: <b>${curTheme.name}</b>\n\n<i>Chọn màu bạn thích để làm nổi bật tin nhắn dự đoán:</i>`, {
-        reply_markup: makeThemeSelectKeyboard()
       });
       return;
     }
@@ -1875,15 +1578,14 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
       const enteredKey = (parts[1] || "").trim().toUpperCase();
 
       if (!enteredKey) {
-        await bot.sendMessage(chatId, "<b>⚠️ Vui lòng nhập mã key!</b>\nCú pháp: <code>/key &lt;mã_key&gt;</code>\n<i>Ví dụ:</i> <code>/key AK-7D-8A9F21</code>");
+        await bot.sendMessage(chatId, "<b>⚠️ Vui lòng nhập mã key!</b>\nCú pháp: <code>/key &lt;mã_key&gt;</code>");
         return;
       }
 
       const kData = store.keys[enteredKey];
 
-      // NẾU KEY ĐÃ BỊ ADMIN THU HỒI (CÓ THỂ MỞ LẠI)
       if (kData && kData.status === "revoked") {
-        await bot.sendMessage(chatId, `<b>⛔ KEY ĐÃ BỊ TẠM THU HỒI!</b>\n\nMã key <code>${enteredKey}</code> đã bị Admin thu hồi.\nKey này <b>CÓ THỂ MỞ LẠI</b> sau khi liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b>.\n⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>`, {
+        await bot.sendMessage(chatId, `<b>⛔ KEY ĐÃ BỊ TẠM THU HỒI!</b>\n\nKey <code>${enteredKey}</code> có thể mở lại sau khi liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> (${ADMIN_WORK_HOURS}).`, {
           reply_markup: {
             inline_keyboard: [[{ text: "📞 Liên Hệ Admin Mở Lại", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
           }
@@ -1892,7 +1594,7 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
       }
 
       if (!kData || kData.status !== "active") {
-        await bot.sendMessage(chatId, `<b>❌ KEY KHÔNG HỢP LỆ HOẶC ĐÃ BỊ XOÁ MẤT LUÔN!</b>\n\nKey không tồn tại hoặc đã được sử dụng.\nVui lòng liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> để được cấp key mới.`);
+        await bot.sendMessage(chatId, `<b>❌ KEY KHÔNG HỢP LỆ HOẶC ĐÃ BỊ XOÁ MẤT LUÔN!</b>\n\nVui lòng liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b>.`);
         return;
       }
 
@@ -1914,18 +1616,14 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
       addSystemLog("Kích hoạt Key", `User ${uid} kích hoạt key ${enteredKey} (${kData.durationText})`);
       saveStore(store);
 
-      const expDateStr = expiresAt === -1 ? "Vĩnh Viễn (Không thời hạn)" : formatVNDateTime(expiresAt);
-      const actDateStr = formatVNDateTime(now);
+      const expDateStr = expiresAt === -1 ? "Vĩnh Viễn (Lifetime)" : formatVNDateTime(expiresAt);
 
       await bot.sendMessage(chatId, `<b>🎉 KÍCH HOẠT BẢN QUYỀN THÀNH CÔNG!</b>
-━━━━━━━━━━━━━━━━━━━━━
-🔑 <b>Mã Key:</b> <code>${enteredKey}</code>
-⏳ <b>Gói dịch vụ:</b> <b>${kData.durationText}</b>
-🕒 <b>Thời điểm kích hoạt:</b> <b>${actDateStr}</b>
-📅 <b>HẠN DÙNG ĐẾN:</b> <b>${expDateStr}</b>
-⏳ <b>Thời gian sử dụng:</b> <b>${formatRemainingDetail(expiresAt)}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Toàn bộ hệ thống bắt cầu định lượng và bàn phím 1-chạm đã sẵn sàng!</i>`, {
+<pre><code class="language-diff">+ KEY: ${enteredKey}
++ THỜI HẠN: ${kData.durationText}
++ HẠN DÙNG ĐẾN: ${expDateStr}
+! THỜI GIAN SỬ DỤNG: ${formatRemainingDetail(expiresAt)}
+</code></pre>`, {
         reply_markup: makePersistentReplyKeyboard(uid)
       });
       return;
@@ -1935,17 +1633,16 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     const access = checkUserAccess(uid);
 
     // 1. SOI CẦU MD5 (LC79 - NGUỒN DUY NHẤT)
-    if (text === "◈ SOI CẦU MD5 (LC79)" || text === "/md5") {
+    if (text === "🎯 SOI CẦU MD5" || text === "/md5") {
       if (!access.hasAccess) {
-        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng nhập /key <mã_key>");
+        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng gửi: /key <mã_key>");
         return;
       }
-      await bot.sendMessage(chatId, buildPredictionText("md5", md5, uid), {
+      await bot.sendMessage(chatId, buildPredictionText("md5", md5), {
         reply_markup: {
           inline_keyboard: [
             [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_md5" }],
-            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_md5" }],
-            [{ text: "🔮 Ma Trận Cầu Sâu MD5", callback_data: "deep_analysis" }]
+            [{ text: "📊 Thống Kê 30P", callback_data: "stats_md5" }]
           ]
         }
       });
@@ -1953,17 +1650,16 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // 2. SOI CẦU HŨ
-    if (text === "❖ SOI CẦU HŨ" || text === "/hu") {
+    if (text === "🎲 SOI CẦU HŨ" || text === "/hu") {
       if (!access.hasAccess) {
-        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng nhập /key <mã_key>");
+        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền. Vui lòng gửi: /key <mã_key>");
         return;
       }
-      await bot.sendMessage(chatId, buildPredictionText("hu", hu, uid), {
+      await bot.sendMessage(chatId, buildPredictionText("hu", hu), {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "🔄 Cập Nhật Lại Phiên Mới", callback_data: "pred_hu" }],
-            [{ text: "📊 Xem Chi Tiết Thua/Thắng 30P", callback_data: "stats_hu" }],
-            [{ text: "🔮 Ma Trận Cầu Sâu Bàn Hũ", callback_data: "deep_hu" }]
+            [{ text: "🔄 Cập Nhật Phiên Mới", callback_data: "pred_hu" }],
+            [{ text: "📊 Thống Kê 30P", callback_data: "stats_hu" }]
           ]
         }
       });
@@ -1971,15 +1667,15 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // 3. THỐNG KÊ CHI TIẾT TỪNG PHIÊN (NHẢY RA ĐẦY ĐỦ THẮNG / THUA)
-    if (text === "📊 THỐNG KÊ CHI TIẾT 30P" || text === "/thongke") {
+    if (text === "📊 THỐNG KÊ 30P" || text === "/thongke") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
         return;
       }
-      await bot.sendMessage(chatId, buildStatsFullText("md5", md5, uid), {
+      await bot.sendMessage(chatId, buildStatsFullText("md5", md5), {
         reply_markup: {
           inline_keyboard: [
-            [{ text: "◈ Thống Kê MD5", callback_data: "stats_md5" }, { text: "❖ Thống Kê Hũ", callback_data: "stats_hu" }]
+            [{ text: "🎯 Thống Kê MD5", callback_data: "stats_md5" }, { text: "🎲 Thống Kê Hũ", callback_data: "stats_hu" }]
           ]
         }
       });
@@ -1987,23 +1683,21 @@ Nếu bạn đã có Key, hãy gửi tin nhắn theo cú pháp:
     }
 
     // 4. CÀI ĐẶT TỰ ĐỘNG BÁO KÈO
-    if (text === "⚡ TỰ ĐỘNG BÁO KÈO" || text === "/tubao") {
+    if (text === "⚡ TỰ ĐỘNG BÁO" || text === "/tubao") {
       if (!access.hasAccess) {
         await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
         return;
       }
       const u = store.users[uid] || {};
-      const mState = u.md5Alert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
-      const hState = u.huAlert ? "🟢 ĐANG BẬT" : "🔴 ĐANG TẮT";
+      const mState = u.md5Alert ? "BẬT" : "TẮT";
+      const hState = u.huAlert ? "BẬT" : "TẮT";
 
       const txt = `<b>⚡ CÀI ĐẶT TỰ ĐỘNG BÁO KÈO TỪNG BÀN</b>
-━━━━━━━━━━━━━━━━━━━━━
-Chỉ 1 bàn MD5 duy nhất (LC79) và 1 bàn Hũ, độc lập 100%, không bị rối!
-
-◈ <b>Tài Xỉu MD5 (LC79):</b> <b>${mState}</b>
-❖ <b>Tài Xỉu Hũ (Tele68):</b> <b>${hState}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bấm các nút bên dưới để chuyển đổi Bật / Tắt:</i>`;
+<pre><code class="language-diff">@@ BẬT CÁI GÌ CHẠY ĐÓ - KHÔNG LOẠN @@
+${u.md5Alert ? "+" : "-"} TỰ BÁO MD5 LC79: ${mState}
+${u.huAlert ? "+" : "-"} TỰ BÁO HŨ TELE68: ${hState}
+! Tự động gửi tin nhắn mỗi 50s/phiên liên tục 24/7
+</code></pre><i>Bấm các nút bên dưới để Bật / Tắt:</i>`;
       await bot.sendMessage(chatId, txt, {
         reply_markup: makeUserInlineKeyboard(uid)
       });
@@ -2011,30 +1705,23 @@ Chỉ 1 bàn MD5 duy nhất (LC79) và 1 bàn Hũ, độc lập 100%, không b�
     }
 
     // 5. THÔNG TIN BẢN QUYỀN
-    if (text === "👤 BẢN QUYỀN CỦA BẠN" || text === "/thongtin") {
+    if (text === "👤 BẢN QUYỀN" || text === "/thongtin") {
       const u = store.users[uid] || {};
       const expDateStr = access.expiresAt ? formatVNDateTime(access.expiresAt) : "Vĩnh Viễn (Lifetime)";
       const actDateStr = u.activatedAt ? formatVNDateTime(u.activatedAt) : "—";
-      const th = getUserTheme(uid);
 
-      const msg = `<b>${th.iconHeader} THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
-━━━━━━━━━━━━━━━━━━━━━
-🆔 <b>ID Telegram:</b> <code>${uid}</code>
-🔑 <b>Mã Key Đang Dùng:</b> <code>${u.activatedKey || (access.isAdmin ? "Admin Tối Cao" : "Chưa có")}</code>
-📊 <b>Trạng Thái:</b> <b>${access.hasAccess ? "🟢 Đang Hoạt Động" : "🔴 Chưa Hợp Lệ"}</b>
-🕒 <b>Thời Điểm Kích Hoạt:</b> <b>${actDateStr}</b>
-📅 <b>HẠN DÙNG ĐẾN:</b> <b>${expDateStr}</b>
-⏳ <b>Thời Gian Còn Lại:</b> <b>${access.remainingText}</b>
-🎨 <b>Theme Giao Diện:</b> <b>${th.name}</b>
-━━━━━━━━━━━━━━━━━━━━━
-⚡ <b>Tự Báo MD5:</b> ${u.md5Alert ? "🟢 Bật" : "🔴 Tắt"}
-⚡ <b>Tự Báo Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"}
-━━━━━━━━━━━━━━━━━━━━━
-⏰ <b>Giờ làm việc Admin:</b> <b>${ADMIN_WORK_HOURS}</b>
-<i>Tác giả: Phạm Anh Khôi · Hỗ trợ: ${TELEGRAM_ADMIN_CONTACT}</i>`;
+      const msg = `<b>👤 THÔNG TIN BẢN QUYỀN CỦA BẠN</b>
+<pre><code class="language-diff">@@ ID: ${uid} @@
++ KEY: ${u.activatedKey || (access.isAdmin ? "Admin Tối Cao" : "Chưa có")}
++ TRẠNG THÁI: ${access.hasAccess ? "HOẠT ĐỘNG" : "HẾT HẠN"}
++ HẠN DÙNG ĐẾN: ${expDateStr}
+! CÒN LẠI: ${access.remainingText}
+! KÍCH HOẠT LÚC: ${actDateStr}
+- TỰ BÁO MD5: ${u.md5Alert ? "BẬT" : "TẮT"} • HŨ: ${u.huAlert ? "BẬT" : "TẮT"}
+</code></pre><i>Admin: ${TELEGRAM_ADMIN_CONTACT} (${ADMIN_WORK_HOURS})</i>`;
       await bot.sendMessage(chatId, msg, {
         reply_markup: {
-          inline_keyboard: [[{ text: "📞 Liên Hệ Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
+          inline_keyboard: [[{ text: "📞 Nhắn Admin", url: `https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}` }]]
         }
       });
       return;
@@ -2046,36 +1733,18 @@ Chỉ 1 bàn MD5 duy nhất (LC79) và 1 bàn Hũ, độc lập 100%, không b�
       return;
     }
 
-    // 7. PHÂN TÍCH MA TRẬN CẦU SÂU
-    if (text === "🔮 MA TRẬN CẦU SÂU" || text === "/soicausau") {
-      if (!access.hasAccess) {
-        await bot.sendMessage(chatId, "⚠️ Bạn chưa kích hoạt key bản quyền.");
-        return;
-      }
-      await bot.sendMessage(chatId, buildDeepAnalysisText("md5", md5, uid), {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "❖ Phân Tích Bàn Hũ", callback_data: "deep_hu" }]
-          ]
-        }
-      });
-      return;
-    }
-
-    // 8. MENU ADMIN TỐI CAO
-    if (text === "👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO" || text === "/admin") {
+    // 7. MENU ADMIN TỐI CAO
+    if (text === "👑 MENU ADMIN" || text === "/admin") {
       if (!access.isAdmin) {
         await bot.sendMessage(chatId, "⛔ <b>Lệnh này chỉ dành cho Admin tối cao!</b>");
         return;
       }
       const adminTxt = `<b>👑 BẢNG QUẢN TRỊ ADMIN TỐI CAO</b>
-━━━━━━━━━━━━━━━━━━━━━
-Xin chào Sếp <b>Phạm Anh Khôi</b>!
-ID Admin: <code>${uid}</code>
-Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn) và quản lý hệ thống.
-⏰ <b>Giờ trực hỗ trợ:</b> <b>${ADMIN_WORK_HOURS}</b>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Bấm nút bên dưới để tạo key hoặc quản lý:</i>`;
+<pre><code class="language-diff">@@ SẾP PHẠM ANH KHÔI @@
++ ID: ${uid}
+! LỆNH: Tạo Key, Thu Hồi (mở lại được), Xoá Key (mất luôn)
+- GIỜ TRỰC: ${ADMIN_WORK_HOURS}
+</code></pre><i>Bấm các nút dưới đây để thao tác nhanh:</i>`;
       await bot.sendMessage(chatId, adminTxt, {
         reply_markup: makeAdminKeyboard()
       });
@@ -2099,7 +1768,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const dur = parseDuration(durStr);
 
       if (!dur) {
-        await bot.sendMessage(chatId, `<b>⚠️ Định dạng thời gian không đúng!</b>\n\nVí dụ:\n• <code>/taokey 1h</code> (1 giờ)\n• <code>/taokey 12h</code> (12 giờ)\n• <code>/taokey 1d</code> (1 ngày)\n• <code>/taokey 7d 3</code> (tạo 3 key 7 ngày)\n• <code>/taokey 30d</code> (30 ngày)\n• <code>/taokey vv</code> (vĩnh viễn)`);
+        await bot.sendMessage(chatId, `<b>⚠️ Định dạng không đúng!</b>\nVí dụ: <code>/taokey 1h</code>, <code>/taokey 1d</code>, <code>/taokey 7d 3</code>, <code>/taokey vv</code>`);
         return;
       }
 
@@ -2121,8 +1790,11 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       addSystemLog("Tạo Key", `Tạo ${count} key (${dur.text})`);
       saveStore(store);
 
-      const keysMsg = createdKeys.map(k => `• <code>${k}</code>`).join("\n");
-      await bot.sendMessage(chatId, `<b>🎉 ĐÃ TẠO THÀNH CÔNG ${count} KEY (${dur.text})!</b>\n━━━━━━━━━━━━━━━━━━━━━\n${keysMsg}\n━━━━━━━━━━━━━━━━━━━━━\n📅 <i>Sau khi khách kích hoạt, thời hạn sẽ tính chính xác: ${dur.text}.</i>`);
+      const keysMsg = createdKeys.map(k => `+ ${k}`).join("\n");
+      await bot.sendMessage(chatId, `<b>🎉 ĐÃ TẠO THÀNH CÔNG ${count} KEY (${dur.text})!</b>
+<pre><code class="language-diff">${keysMsg}
+! Thời hạn ${dur.text} tính từ lúc khách kích hoạt
+</code></pre>`);
       return;
     }
 
@@ -2134,11 +1806,10 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const targetKey = (text.split(" ")[1] || "").trim().toUpperCase();
       if (!targetKey || !store.keys[targetKey]) {
-        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/thuhoi &lt;mã_key&gt;</code>\nKhông tìm thấy mã key này trong hệ thống!");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/thuhoi &lt;mã_key&gt;</code>\nKhông tìm thấy mã key này!");
         return;
       }
 
-      // Đánh dấu trạng thái key là đã thu hồi (revoked) - CÓ THỂ MỞ LẠI
       store.keys[targetKey].status = "revoked";
       store.keys[targetKey].revokedAt = Date.now();
       store.keys[targetKey].revokedBy = uid;
@@ -2166,7 +1837,11 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       addSystemLog("Thu hồi Key", `Tạm thu hồi key ${targetKey} (User: ${affectedUserId || "Chưa gán"})`);
       saveStore(store);
 
-      await bot.sendMessage(chatId, `✅ <b>ĐÃ THU HỒI KEY THÀNH CÔNG (CÓ THỂ MỞ LẠI)!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🔑 <b>Key:</b> <code>${targetKey}</code>\n👤 <b>User bị khóa:</b> <code>${affectedUserId || "Chưa ai dùng"}</code>\nℹ️ <i>Key này đang tạm khóa. Khi cần mở lại, dùng lệnh:</i>\n👉 <code>/molai ${targetKey}</code>`);
+      await bot.sendMessage(chatId, `✅ <b>ĐÃ THU HỒI KEY THÀNH CÔNG (CÓ THỂ MỞ LẠI)!</b>
+<pre><code class="language-diff">- KEY BỊ THU HỒI: ${targetKey}
+- USER BỊ KHÓA: ${affectedUserId || "Chưa ai dùng"}
+! Khi cần mở lại gửi: /molai ${targetKey}
+</code></pre>`);
       return;
     }
 
@@ -2178,13 +1853,13 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const targetKey = (text.split(" ")[1] || "").trim().toUpperCase();
       if (!targetKey || !store.keys[targetKey]) {
-        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/molai &lt;mã_key&gt;</code>\nKhông tìm thấy mã key này trong hệ thống!");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/molai &lt;mã_key&gt;</code>");
         return;
       }
 
       const kData = store.keys[targetKey];
       if (kData.status !== "revoked") {
-        await bot.sendMessage(chatId, `⚠️ Key <code>${targetKey}</code> hiện không ở trạng thái bị thu hồi (Trạng thái: <b>${kData.status}</b>).`);
+        await bot.sendMessage(chatId, `⚠️ Key <code>${targetKey}</code> không ở trạng thái thu hồi.`);
         return;
       }
 
@@ -2201,7 +1876,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
           delete uObj.revokedAt;
 
           try {
-            await bot.sendMessage(uId, `🎉 <b>BẢN QUYỀN ĐÃ ĐƯỢC ADMIN MỞ LẠI!</b>\n━━━━━━━━━━━━━━━━━━━━━\nKey <code>${targetKey}</code> của bạn đã được Admin kích hoạt mở lại thành công.\nBạn có thể tiếp tục sử dụng bình thường!`, {
+            await bot.sendMessage(uId, `🎉 <b>BẢN QUYỀN ĐÃ ĐƯỢC ADMIN MỞ LẠI!</b>\nKey <code>${targetKey}</code> đã được khôi phục thành công!`, {
               reply_markup: makePersistentReplyKeyboard(uId)
             });
           } catch {}
@@ -2211,7 +1886,11 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       addSystemLog("Mở lại Key", `Mở lại key ${targetKey} (User: ${restoredUserId || "Chưa gán"})`);
       saveStore(store);
 
-      await bot.sendMessage(chatId, `🎉 <b>ĐÃ MỞ LẠI KEY THÀNH CÔNG!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🔑 <b>Key:</b> <code>${targetKey}</code>\n👤 <b>User khôi phục:</b> <code>${restoredUserId || "Chưa ai dùng"}</code>\n✅ <i>Người dùng đã có thể sử dụng lại bình thường.</i>`);
+      await bot.sendMessage(chatId, `🎉 <b>ĐÃ MỞ LẠI KEY THÀNH CÔNG!</b>
+<pre><code class="language-diff">+ KEY: ${targetKey}
++ USER KHÔI PHỤC: ${restoredUserId || "Chưa ai dùng"}
++ TRẠNG THÁI: HOẠT ĐỘNG BÌNH THƯỜNG
+</code></pre>`);
       return;
     }
 
@@ -2223,7 +1902,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const targetUid = (text.split(" ")[1] || "").trim();
       if (!targetUid || !store.users[targetUid]) {
-        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/thuhoiuser &lt;user_id&gt;</code>\nKhông tìm thấy thông tin của User ID này!");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/thuhoiuser &lt;user_id&gt;</code>");
         return;
       }
 
@@ -2251,7 +1930,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
         });
       } catch {}
 
-      await bot.sendMessage(chatId, `✅ <b>Đã tạm thu hồi User ID <code>${targetUid}</code> (CÓ THỂ MỞ LẠI)!</b>\nĐể mở lại, dùng lệnh: <code>/khoiphucuser ${targetUid}</code>`);
+      await bot.sendMessage(chatId, `✅ <b>Đã tạm thu hồi User ID <code>${targetUid}</code>!</b>\nĐể mở lại gửi: <code>/khoiphucuser ${targetUid}</code>`);
       return;
     }
 
@@ -2263,7 +1942,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const targetUid = (text.split(" ")[1] || "").trim();
       if (!targetUid || !store.users[targetUid]) {
-        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/khoiphucuser &lt;user_id&gt;</code>\nKhông tìm thấy thông tin của User ID này!");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/khoiphucuser &lt;user_id&gt;</code>");
         return;
       }
 
@@ -2281,7 +1960,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       saveStore(store);
 
       try {
-        await bot.sendMessage(targetUid, `🎉 <b>TÀI KHOẢN ĐÃ ĐƯỢC ADMIN MỞ LẠI!</b>\n━━━━━━━━━━━━━━━━━━━━━\nTài khoản của bạn đã được Admin khôi phục quyền truy cập.\nBạn có thể tiếp tục sử dụng bình thường!`, {
+        await bot.sendMessage(targetUid, `🎉 <b>TÀI KHOẢN ĐÃ ĐƯỢC ADMIN MỞ LẠI!</b>\nBạn có thể tiếp tục sử dụng bình thường!`, {
           reply_markup: makePersistentReplyKeyboard(targetUid)
         });
       } catch {}
@@ -2298,11 +1977,10 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const targetKey = (text.split(" ")[1] || "").trim().toUpperCase();
       if (!targetKey || !store.keys[targetKey]) {
-        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/xoakey &lt;mã_key&gt;</code>\nKhông tìm thấy mã key này trong hệ thống!");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/xoakey &lt;mã_key&gt;</code>");
         return;
       }
 
-      // XOÁ HOÀN TOÀN KHỎI HỆ THỐNG - MẤT LUÔN
       delete store.keys[targetKey];
 
       let affectedUserId = null;
@@ -2311,15 +1989,19 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
           affectedUserId = uId;
           delete store.users[uId];
           try {
-            await bot.sendMessage(uId, `⚠️ <b>Key bản quyền của bạn đã bị xoá vĩnh viễn khỏi hệ thống!</b>\nVui lòng liên hệ Admin <b>${TELEGRAM_ADMIN_CONTACT}</b> nếu cần mua key mới.`);
+            await bot.sendMessage(uId, `⚠️ <b>Key bản quyền của bạn đã bị xoá vĩnh viễn khỏi hệ thống!</b>`);
           } catch {}
         }
       }
 
-      addSystemLog("Xoá Vĩnh Viễn Key", `Xoá mất luôn key ${targetKey}, xóa user: ${affectedUserId || "Không có"}`);
+      addSystemLog("Xoá Vĩnh Viễn Key", `Xoá mất luôn key ${targetKey}, user: ${affectedUserId || "Không có"}`);
       saveStore(store);
 
-      await bot.sendMessage(chatId, `🗑️ <b>ĐÃ XOÁ VĨNH VIỄN KEY (MẤT LUÔN KHỎI HỆ THỐNG)!</b>\n━━━━━━━━━━━━━━━━━━━━━\n🔑 <b>Key:</b> <code>${targetKey}</code>\n👤 <b>User bị xoá:</b> <code>${affectedUserId || "Không có"}</code>\n⚠️ <i>Key này đã bị xoá hoàn toàn, không thể khôi phục hay mở lại!</i>`);
+      await bot.sendMessage(chatId, `🗑️ <b>ĐÃ XOÁ VĨNH VIỄN KEY (MẤT LUÔN KHỎI HỆ THỐNG)!</b>
+<pre><code class="language-diff">- ĐÃ XOÁ MẤT LUÔN: ${targetKey}
+- USER BỊ XOÁ: ${affectedUserId || "Không có"}
+! Key này không thể khôi phục hay mở lại
+</code></pre>`);
       return;
     }
 
@@ -2332,7 +2014,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const targetUid = (text.split(" ")[1] || "").trim();
       const u = store.users[targetUid];
       if (!u) {
-        await bot.sendMessage(chatId, `⚠️ Không tìm thấy dữ liệu cho User ID <code>${targetUid}</code>.`);
+        await bot.sendMessage(chatId, `⚠️ Không tìm thấy User ID <code>${targetUid}</code>.`);
         return;
       }
 
@@ -2340,15 +2022,14 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const actTime = u.activatedAt ? formatVNDateTime(u.activatedAt) : "—";
       const expTime = u.expiresAt ? formatVNDateTime(u.expiresAt) : "Vĩnh Viễn";
 
-      const infoMsg = `<b>🔍 HỒ SƠ CHI TIẾT NGƯỜI DÙNG</b>
-━━━━━━━━━━━━━━━━━━━━━
-🆔 <b>ID:</b> <code>${targetUid}</code>
-🔑 <b>Mã Key:</b> <code>${u.activatedKey || "Không"}</code>
-📊 <b>Trạng thái:</b> <b>${u.status === "revoked" ? "⛔ BỊ THU HỒI (Có thể mở lại)" : (uAccess.hasAccess ? "🟢 Hoạt động" : "🔴 Hết hạn")}</b>
-🕒 <b>Kích hoạt lúc:</b> <b>${actTime}</b>
-📅 <b>Hạn dùng đến:</b> <b>${expTime}</b>
-⏳ <b>Còn lại:</b> <b>${uAccess.remainingText}</b>
-⚡ <b>Tự báo MD5:</b> ${u.md5Alert ? "🟢 Bật" : "🔴 Tắt"} | <b>Hũ:</b> ${u.huAlert ? "🟢 Bật" : "🔴 Tắt"}`;
+      const infoMsg = `<b>🔍 HỒ SƠ NGƯỜI DÙNG</b>
+<pre><code class="language-diff">@@ ID: ${targetUid} @@
++ KEY: ${u.activatedKey || "Không"}
++ TRẠNG THÁI: ${u.status === "revoked" ? "BỊ THU HỒI (Mở lại được)" : (uAccess.hasAccess ? "HOẠT ĐỘNG" : "HẾT HẠN")}
++ HẠN DÙNG: ${expTime}
+! KÍCH HOẠT: ${actTime}
+- TỰ BÁO MD5: ${u.md5Alert ? "BẬT" : "TẮT"} • HŨ: ${u.huAlert ? "BẬT" : "TẮT"}
+</code></pre>`;
       await bot.sendMessage(chatId, infoMsg);
       return;
     }
@@ -2382,9 +2063,9 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       addSystemLog("Gia hạn", `Gia hạn ${dur.text} cho User ${targetUid}`);
       saveStore(store);
 
-      await bot.sendMessage(chatId, `✅ <b>Đã gia hạn thành công cho User <code>${targetUid}</code> thêm ${dur.text}!</b>\nHạn mới đến: <b>${formatVNDateTime(newExpiry)}</b>`);
+      await bot.sendMessage(chatId, `✅ <b>Đã gia hạn thành công cho User <code>${targetUid}</code> thêm ${dur.text}!</b>\nHạn mới: <b>${formatVNDateTime(newExpiry)}</b>`);
       try {
-        await bot.sendMessage(targetUid, `🎉 <b>Tài khoản của bạn đã được Admin gia hạn thêm ${dur.text}!</b>\n📅 <b>Hạn dùng mới đến:</b> <b>${formatVNDateTime(newExpiry)}</b>\n⏳ <b>Thời gian còn lại:</b> <b>${formatRemainingDetail(newExpiry)}</b>`, {
+        await bot.sendMessage(targetUid, `🎉 <b>Tài khoản đã được Admin gia hạn thêm ${dur.text}!</b>\nHạn dùng mới: <b>${formatVNDateTime(newExpiry)}</b>`, {
           reply_markup: makePersistentReplyKeyboard(targetUid)
         });
       } catch {}
@@ -2399,15 +2080,15 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const allKeys = Object.entries(store.keys);
       if (allKeys.length === 0) {
-        await bot.sendMessage(chatId, "<i>Chưa có key nào trong hệ thống.</i>");
+        await bot.sendMessage(chatId, "<i>Chưa có key nào.</i>");
         return;
       }
-      let keyMsg = `<b>📋 DANH SÁCH KEY BẢN QUYỀN (${allKeys.length} Key)</b>\n━━━━━━━━━━━━━━━━━━━━━\n`;
+      let keyMsg = `<b>📋 DANH SÁCH KEY (${allKeys.length} Key)</b>\n`;
       allKeys.slice(-20).reverse().forEach(([k, v]) => {
-        let st = "🟢 Còn trống";
+        let st = "🟢 Trống";
         if (v.status === "used") st = "🔴 Đã kích hoạt";
-        if (v.status === "revoked") st = "⛔ BỊ THU HỒI (Có thể mở lại)";
-        const user = v.activatedBy ? `(ID: <code>${v.activatedBy}</code>)` : "";
+        if (v.status === "revoked") st = "⛔ BỊ THU HỒI";
+        const user = v.activatedBy ? `(${v.activatedBy})` : "";
         keyMsg += `• <code>${k}</code> | ${v.durationText} | ${st} ${user}\n`;
       });
       await bot.sendMessage(chatId, keyMsg);
@@ -2422,7 +2103,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       }
       const msgContent = text.replace("/thongbao", "").trim();
       if (!msgContent) {
-        await bot.sendMessage(chatId, "⚠️ Vui lòng nhập nội dung thông báo!\nCú pháp: <code>/thongbao &lt;nội dung&gt;</code>");
+        await bot.sendMessage(chatId, "⚠️ Cú pháp: <code>/thongbao &lt;nội dung&gt;</code>");
         return;
       }
 
@@ -2430,7 +2111,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const uids = Object.keys(store.users);
       for (const uId of uids) {
         try {
-          await bot.sendMessage(uId, `📢 <b>THÔNG BÁO TỪ ADMIN PHẠM ANH KHÔI</b>\n━━━━━━━━━━━━━━━━━━━━━\n${msgContent}\n━━━━━━━━━━━━━━━━━━━━━\n⏰ <i>Giờ làm việc: ${ADMIN_WORK_HOURS} · Hỗ trợ: ${TELEGRAM_ADMIN_CONTACT}</i>`);
+          await bot.sendMessage(uId, `📢 <b>THÔNG BÁO TỪ ADMIN PHẠM ANH KHÔI</b>\n━━━━━━━━━━━━━━━━━━━━━\n${msgContent}\n━━━━━━━━━━━━━━━━━━━━━\n⏰ <i>Admin trực: ${ADMIN_WORK_HOURS}</i>`);
           count++;
         } catch {}
       }
@@ -2452,17 +2133,14 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       const md5Stats = md5.tracker.getFullStats(30);
       const huStats = hu.tracker.getFullStats(30);
 
-      const statsMsg = `<b>📊 BÁO CÁO TOÀN DIỆN HỆ THỐNG</b>
-━━━━━━━━━━━━━━━━━━━━━
-👥 <b>Tổng Người Dùng:</b> <b>${totalUsers}</b>
-🔑 <b>Key Chưa Kích Hoạt:</b> <b>${activeKeys}</b>
-🔐 <b>Key Đang Hoạt Động:</b> <b>${usedKeys}</b>
-⛔ <b>Key Bị Thu Hồi (Mở lại được):</b> <b>${revokedKeys}</b>
-━━━━━━━━━━━━━━━━━━━━━
-◈ <b>Tài Xỉu MD5 LC79 (30P):</b> <b>${md5Stats.accStr}</b> (Thắng ${md5Stats.winCount} | Thua ${md5Stats.lossCount})
-❖ <b>Tài Xỉu Hũ (30P):</b> <b>${huStats.accStr}</b> (Thắng ${huStats.winCount} | Thua ${huStats.lossCount})
-━━━━━━━━━━━━━━━━━━━━━
-<i>Hệ thống định lượng thời gian thực vận hành liên tục 24/7.</i>`;
+      const statsMsg = `<b>📊 BÁO CÁO HỆ THỐNG GỌN GÀNG</b>
+<pre><code class="language-diff">+ TỔNG NGƯỜI DÙNG: ${totalUsers}
++ KEY CHƯA DÙNG: ${activeKeys}
++ KEY ĐANG DÙNG: ${usedKeys}
+- KEY BỊ THU HỒI: ${revokedKeys}
+@@ MD5 LC79 (30P): ${md5Stats.accStr} (W:${md5Stats.winCount} | L:${md5Stats.lossCount}) @@
+@@ HŨ TELE68 (30P): ${huStats.accStr} (W:${huStats.winCount} | L:${huStats.lossCount}) @@
+</code></pre>`;
       await bot.sendMessage(chatId, statsMsg);
       return;
     }
@@ -2474,7 +2152,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
         return;
       }
       const backupData = JSON.stringify(store, null, 2);
-      await bot.sendMessage(chatId, `<b>💾 BẢN SAO LƯU DỮ LIỆU HỆ THỐNG (JSON):</b>\n\n<code>${backupData.slice(0, 3500)}</code>`);
+      await bot.sendMessage(chatId, `<b>💾 BACKUP JSON:</b>\n\n<code>${backupData.slice(0, 3500)}</code>`);
       return;
     }
 
@@ -2485,7 +2163,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       if (newAdminId && !store.adminIds.includes(newAdminId)) {
         store.adminIds.push(newAdminId);
         saveStore(store);
-        await bot.sendMessage(chatId, `✅ Đã thêm ID <code>${newAdminId}</code> vào danh sách Admin!`);
+        await bot.sendMessage(chatId, `✅ Đã thêm Admin ID <code>${newAdminId}</code>!`);
       }
       return;
     }
@@ -2496,7 +2174,7 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
       if (removeId && removeId !== ADMIN_ID) {
         store.adminIds = store.adminIds.filter(id => id !== removeId);
         saveStore(store);
-        await bot.sendMessage(chatId, `✅ Đã xóa ID <code>${removeId}</code> khỏi danh sách Admin!`);
+        await bot.sendMessage(chatId, `✅ Đã xóa Admin ID <code>${removeId}</code>!`);
       }
       return;
     }
@@ -2504,20 +2182,12 @@ Toàn quyền tạo key, thu hồi (mở lại được), xoá key (mất luôn)
 }
 
 // =========================================================================
-// HỆ THỐNG TỰ ĐỘNG BÁO TÍN HIỆU PHIÊN MỚI (BẬT GÌ CHẠY ĐÓ, KHÔNG LOẠN)
+// HỆ THỐNG TỰ ĐỘNG BÁO TÍN HIỆU PHIÊN MỚI (BẬT GÌ CHẠY ĐÓ, GỌN ĐẸP)
 // =========================================================================
 function setupAutoAlerts() {
   const handlePush = async (gameKey, pred, last) => {
     let flagKey = "md5Alert";
-    let gameName = "◈ TÀI XỈU MD5 (LC79)";
-    if (gameKey === "hu") {
-      flagKey = "huAlert";
-      gameName = "❖ TÀI XỈU HŨ TRUYỀN THỐNG";
-    }
-
-    const lastDisplay = last ? formatResultDisplay(last.result) : "—";
-    const lastDice = last && Array.isArray(last.dice) ? `[${last.dice.join("-")}] (${last.total}đ)` : "—";
-    const curTimeStr = formatVNDateTime(Date.now());
+    if (gameKey === "hu") flagKey = "huAlert";
 
     const activeUsers = Object.entries(store.users).filter(([uid, u]) => {
       if (!u[flagKey]) return false;
@@ -2525,28 +2195,10 @@ function setupAutoAlerts() {
       return acc.hasAccess;
     });
 
+    const alertMsg = buildPredictionText(gameKey, gameKey === "md5" ? md5 : hu);
+
     for (const [uid] of activeUsers) {
       try {
-        const theme = getUserTheme(uid);
-        const isTai = normalizeResult(pred.pred) === "tai";
-        const predBadge = isTai ? theme.badgeTai : theme.badgeXiu;
-        const confBar = makeConfidenceBar(pred.conf, theme);
-        const choppyTag = pred.isChoppy ? `\n⚠️ <i>Cầu giằng co, khuyên vào nhẹ hoặc quan sát!</i>` : "";
-        const vipTag = pred.conf >= 88 ? `\n🔥 <b>VIP KÈO CHỐT TỶ LỆ CAO</b>` : "";
-
-        const alertMsg = `<b>${theme.iconHeader} ⟦ TÍN HIỆU PHIÊN MỚI: ${gameName} ⟧</b>
-━━━━━━━━━━━━━━━━━━━━━
-🎯 <b>PHIÊN: #${pred.session}</b>
-👉 <b>DỰ ĐOÁN: ${predBadge}</b>
-${theme.iconFire} <b>ĐỘ TIN CẬY: ${pred.conf}%</b>${vipTag}
-<code>${confBar}</code>
-${theme.iconStat} <b>CHIẾN THUẬT:</b> <code>${pred.src}</code>${choppyTag}
-━━━━━━━━━━━━━━━━━━━━━
-🎲 <b>Phiên trước #${last ? last.session : "—"}:</b> ${lastDice} ➔ <b>${lastDisplay}</b>
-🕒 <b>Thời gian:</b> <code>${curTimeStr}</code>
-━━━━━━━━━━━━━━━━━━━━━
-<i>Hệ thống tự động báo kèo · Giờ hỗ trợ Admin: ${ADMIN_WORK_HOURS}</i>`;
-
         await bot.sendMessage(uid, alertMsg);
       } catch {}
     }
@@ -2575,7 +2227,7 @@ function startHttpServer() {
 
     if (pathname === "/health" || pathname === "/api/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "ok", author: "Phạm Anh Khôi", version: "8.5-vip-supreme", time: Date.now() }));
+      res.end(JSON.stringify({ status: "ok", author: "Phạm Anh Khôi", version: "9.0-pro", time: Date.now() }));
       return;
     }
 
@@ -2590,31 +2242,31 @@ function startHttpServer() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOT TELEGRAM ĐỊNH LƯỢNG // PHẠM ANH KHÔI v8.5 VIP</title>
+<title>BOT TELEGRAM ĐỊNH LƯỢNG // PHẠM ANH KHÔI v9.0 PRO</title>
 <style>
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#06060c;color:#f4f4f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-.card{background:#0d0d18;border:1px solid rgba(139,92,246,0.4);border-radius:28px;padding:36px;max-width:560px;width:100%;box-shadow:0 20px 50px rgba(139,92,246,0.25);}
-h1{margin:0 0 8px;font-size:1.35rem;color:#fff;display:flex;align-items:center;gap:10px;}
-.badge{background:#8b5cf6;color:#fff;font-size:0.75rem;padding:4px 14px;border-radius:9999px;font-weight:800;}
-.sub{color:#a1a1aa;font-size:0.85rem;margin-bottom:24px;}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
-.box{background:#131322;border-radius:18px;padding:16px;border:1px solid rgba(255,255,255,0.06);}
+.card{background:#0d0d18;border:1px solid rgba(139,92,246,0.4);border-radius:24px;padding:32px;max-width:520px;width:100%;box-shadow:0 20px 50px rgba(139,92,246,0.25);}
+h1{margin:0 0 8px;font-size:1.3rem;color:#fff;display:flex;align-items:center;gap:10px;}
+.badge{background:#8b5cf6;color:#fff;font-size:0.75rem;padding:4px 12px;border-radius:9999px;font-weight:800;}
+.sub{color:#a1a1aa;font-size:0.85rem;margin-bottom:20px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.box{background:#131322;border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,0.06);}
 .box .lbl{font-size:0.75rem;color:#71717a;text-transform:uppercase;font-weight:800;}
-.box .val{font-size:1.25rem;font-weight:900;color:#fff;margin-top:4px;}
-.btn{display:inline-block;width:100%;text-align:center;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;padding:14px 0;border-radius:9999px;font-weight:800;font-size:0.9rem;box-shadow:0 4px 18px rgba(139,92,246,0.4);}
+.box .val{font-size:1.2rem;font-weight:900;color:#fff;margin-top:4px;}
+.btn{display:inline-block;width:100%;text-align:center;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;text-decoration:none;padding:12px 0;border-radius:9999px;font-weight:800;font-size:0.9rem;}
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>BOT TELEGRAM ĐỊNH LƯỢNG <span class="badge">v8.5 VIP SUPREME</span></h1>
+  <h1>BOT ĐỊNH LƯỢNG <span class="badge">v9.0 PRO</span></h1>
   <div class="sub">Tác giả: <b>Phạm Anh Khôi</b> · Telegram: <b>${TELEGRAM_ADMIN_CONTACT}</b> · Trực: <b>${ADMIN_WORK_HOURS}</b></div>
   <div class="grid">
-    <div class="box"><div class="lbl">Tài Xỉu MD5 LC79 (30P)</div><div class="val" style="color:#a78bfa">${md5Stats.accStr} (W:${md5Stats.winCount} | L:${md5Stats.lossCount})</div></div>
-    <div class="box"><div class="lbl">Tài Xỉu Hũ (30P)</div><div class="val" style="color:#a78bfa">${huStats.accStr} (W:${huStats.winCount} | L:${huStats.lossCount})</div></div>
+    <div class="box"><div class="lbl">MD5 LC79 (30P)</div><div class="val" style="color:#a78bfa">${md5Stats.accStr} (W:${md5Stats.winCount}|L:${md5Stats.lossCount})</div></div>
+    <div class="box"><div class="lbl">HŨ TELE68 (30P)</div><div class="val" style="color:#a78bfa">${huStats.accStr} (W:${huStats.winCount}|L:${huStats.lossCount})</div></div>
     <div class="box"><div class="lbl">Tổng Người Dùng</div><div class="val">${totalUsers}</div></div>
     <div class="box"><div class="lbl">Key Chưa Kích Hoạt</div><div class="val">${activeKeys}</div></div>
   </div>
-  <a class="btn" href="https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}" target="_blank">LIÊN HỆ ADMIN PHẠM ANH KHÔI (${ADMIN_WORK_HOURS})</a>
+  <a class="btn" href="https://t.me/${TELEGRAM_ADMIN_CONTACT.replace("@", "")}" target="_blank">LIÊN HỆ ADMIN PHẠM ANH KHÔI</a>
 </div>
 </body>
 </html>`);
